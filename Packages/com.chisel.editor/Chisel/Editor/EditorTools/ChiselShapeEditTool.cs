@@ -34,6 +34,8 @@ namespace Chisel.Editors
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
             // NOTE: Actual work is done by Editor classes
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
         }
     }
 }

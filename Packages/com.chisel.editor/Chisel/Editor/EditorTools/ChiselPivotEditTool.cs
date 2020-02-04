@@ -144,6 +144,9 @@ namespace Chisel.Editors
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
+
             var position = Tools.handlePosition;
             var rotation = Tools.handleRotation;
             if (Event.current.type == EventType.Repaint)

@@ -49,6 +49,9 @@ namespace Chisel.Editors
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
+
             var defaultID = GUIUtility.GetControlID(kSurfaceEditModeHash, FocusType.Passive, dragArea);
             HandleUtility.AddDefaultControl(defaultID);
 

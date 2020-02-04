@@ -636,9 +636,6 @@ namespace Chisel.Editors
                 return;
             }
 
-            ChiselOptionsOverlay.Show();
-            ChiselGridOptionsOverlay.Show();
-
             var generator = target as T;
             if (GUIUtility.hotControl == 0)
             {

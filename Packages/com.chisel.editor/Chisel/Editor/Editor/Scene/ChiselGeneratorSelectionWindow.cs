@@ -41,7 +41,8 @@ namespace Chisel.Editors
 
 
         const int kPrimaryOrder = int.MaxValue;
-        static ChiselOverlay generatorSettingsOverlay = new ChiselOverlay(EditorGUIUtility.TrTextContent("Generator Settings"), OnSettingsGUI, kPrimaryOrder);
+        static GUIContent overlayTitle = new GUIContent("Generator Settings");
+        static ChiselOverlay generatorSettingsOverlay = new ChiselOverlay(overlayTitle, OnSettingsGUI, kPrimaryOrder);
 
         static void OnSettingsGUI(System.Object target, SceneView sceneView)
         {
@@ -63,6 +64,7 @@ namespace Chisel.Editors
 
         public virtual void     OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
+            overlayTitle.text = ToolName;
             generatorSettingsOverlay.Show();
 
             var evt = Event.current;
@@ -166,9 +168,11 @@ namespace Chisel.Editors
             if (EditorGUI.EndChangeCheck())
             {
                 ChiselCreateTool.ActivateTool();
+                Selection.activeObject = null;
                 ChiselGeneratorManager.GeneratorMode = generator.instance;
                 if (value)
                     ChiselEditorSettings.Save();
+                SceneView.RepaintAll();
             }
         }
 

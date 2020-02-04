@@ -26,6 +26,7 @@ namespace Chisel.Editors
                 text    = $"Chisel {ToolName} Tool",
                 tooltip = $"Chisel {ToolName} Tool"
             };
+            ChiselOptionsOverlay.Register(this);
         }
 
         public virtual void OnSceneSettingsGUI()

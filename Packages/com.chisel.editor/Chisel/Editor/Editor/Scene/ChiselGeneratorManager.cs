@@ -171,6 +171,8 @@ namespace Chisel.Editors
 
             if (is_generator)
                 EditorTools.SetActiveTool(typeof(ChiselShapeEditTool));
+            else
+                EditorTools.RestorePreviousPersistentTool();
         }
 
     }
