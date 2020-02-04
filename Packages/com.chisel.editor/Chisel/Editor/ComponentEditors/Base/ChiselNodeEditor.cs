@@ -630,13 +630,14 @@ namespace Chisel.Editors
             if (!target)
                 return;
 
-            ChiselOptionsOverlay.Show();
-            ChiselGridOptionsOverlay.Show();
             if (Tools.current != Tool.Custom || !ChiselShapeEditTool.IsActive())
             {
                 OnDefaultSceneTools();
                 return;
             }
+
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
 
             var generator = target as T;
             if (GUIUtility.hotControl == 0)
