@@ -11,7 +11,7 @@ using UnityEditor.ShortcutManagement;
 namespace Chisel.Editors
 {
     // TODO: maybe just bevel top of cylinder instead of separate capsule generator??
-    public sealed class ChiselCapsuleGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselCapsuleGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselCapsule.kNodeTypeName;
         public override string ToolName => kToolName;
@@ -19,7 +19,7 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.CapsuleBuilderModeKey, ChiselKeyboardDefaults.CapsuleBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselCapsuleGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselCapsuleGeneratorMode); }
         #endregion
 
         public override void Reset()
@@ -42,6 +42,19 @@ namespace Chisel.Editors
         int	    bottomSegments	        = ChiselCapsuleDefinition.kDefaultBottomSegments;
 
         ChiselCapsule capsule;
+
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
+            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
+            GUILayout.EndHorizontal();
+            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            GUILayout.EndVertical();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

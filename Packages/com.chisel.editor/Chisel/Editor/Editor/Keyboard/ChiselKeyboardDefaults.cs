@@ -13,11 +13,12 @@ namespace Chisel.Editors
     {
         public const string     ShortCutCreateBase      = "Chisel/Create/";
         public const string     ShortCutEditModeBase    = "Chisel/Edit Mode/";
-
-        public const KeyCode SwitchToObjectEditMode     = KeyCode.F1;
-        public const KeyCode SwitchToPivotEditMode      = KeyCode.F2;
-        public const KeyCode SwitchToShapeEditMode      = KeyCode.F3;
-        public const KeyCode SwitchToSurfaceEditMode    = KeyCode.F4;
+        
+        public const KeyCode SwitchToCreateEditMode     = KeyCode.F1;
+        //public const KeyCode SwitchToObjectEditMode   = KeyCode.F2;
+        public const KeyCode SwitchToShapeEditMode      = KeyCode.F2;
+        public const KeyCode SwitchToSurfaceEditMode    = KeyCode.F3;
+        public const KeyCode SwitchToPivotEditMode      = KeyCode.F4;
 
 
         // TODO: assign reasonable keys

@@ -10,7 +10,7 @@ using UnityEditor.ShortcutManagement;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselLinearStairsGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselLinearStairsGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselLinearStairs.kNodeTypeName;
         public override string ToolName => kToolName;
@@ -18,7 +18,7 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.LinearStairsBuilderModeKey, ChiselKeyboardDefaults.LinearStairsBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselLinearStairsGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselLinearStairsGeneratorMode); }
         #endregion
 
         public override void Reset()
@@ -29,7 +29,12 @@ namespace Chisel.Editors
         
         ChiselLinearStairs linearStairs;
         // TODO: Handle forcing operation types
-        CSGOperationType? forceOperation = null;
+        CSGOperationType? forceOperation = null; // TODO: WHY???
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.FlexibleSpace();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

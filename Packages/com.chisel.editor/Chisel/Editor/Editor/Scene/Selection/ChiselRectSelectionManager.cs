@@ -88,21 +88,11 @@ namespace Chisel.Editors
         {
             reflectionSucceeded	= false;
 
-            var assemblies	= System.AppDomain.CurrentDomain.GetAssemblies();
-            var types		= new List<System.Type>();
-            foreach(var assembly in assemblies)
-            {
-                try
-                {
-                    types.AddRange(assembly.GetTypes());
-                }
-                catch { }
-            }
-            unityRectSelectionType		= types.FirstOrDefault(t => t.FullName == "UnityEditor.RectSelection");
+            unityRectSelectionType		= ReflectionExtensions.GetTypeByName("UnityEditor.RectSelection");
             if (unityRectSelectionType == null)
                 return; 
 
-            unityEnumSelectionType 		= types.FirstOrDefault(t => t.FullName == "UnityEditor.RectSelection+SelectionType");
+            unityEnumSelectionType 		= ReflectionExtensions.GetTypeByName("UnityEditor.RectSelection+SelectionType");
             if (unityEnumSelectionType == null)
                 return;
             

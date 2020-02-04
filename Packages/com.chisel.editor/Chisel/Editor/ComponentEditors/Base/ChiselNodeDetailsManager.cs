@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Chisel;
-using System.Reflection;
 using Chisel.Core;
 using Chisel.Components;
 
@@ -19,6 +18,7 @@ namespace Chisel.Editors
         [InitializeOnLoadMethod]
         static void InitializeNodeDetails()
         {
+            ReflectionExtensions.Initialize();
             foreach (var type in ReflectionExtensions.AllNonAbstractClasses)
             {
                 var baseType = type.GetGenericBaseClass(typeof(ChiselNodeDetails<>));

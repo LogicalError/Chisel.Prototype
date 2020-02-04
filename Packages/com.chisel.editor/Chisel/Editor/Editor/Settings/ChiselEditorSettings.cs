@@ -19,12 +19,8 @@ namespace Chisel.Editors
         public static bool				MoveSnapping	{ get { return BoundsSnapping || PivotSnapping; } }
         public static bool				BoundsSnapping  { get { return Snapping.BoundsSnappingEnabled; } set { Snapping.BoundsSnappingEnabled = value; } }
         public static bool				PivotSnapping   { get { return Snapping.PivotSnappingEnabled; } set { Snapping.PivotSnappingEnabled = value; } }
-        public static float				MoveSnapX		{ get { return Grid.defaultGrid.SpacingX; } set { Grid.defaultGrid.SpacingX = value; } }
-        public static float				MoveSnapY		{ get { return Grid.defaultGrid.SpacingY; } set { Grid.defaultGrid.SpacingY = value; } }
-        public static float				MoveSnapZ		{ get { return Grid.defaultGrid.SpacingZ; } set { Grid.defaultGrid.SpacingZ = value; } }
-        public static float				UniformSnapDistance		{ get { return Grid.defaultGrid.SpacingX; } set { Grid.defaultGrid.SpacingX = value;
-                                                                                                          Grid.defaultGrid.SpacingY = value;
-                                                                                                          Grid.defaultGrid.SpacingZ = value; } } 
+        public static float				UniformSnapSize { get { return ChiselGridSettings.Size.Value.x; } set { Grid.defaultGrid.Spacing = ChiselGridSettings.Size.Value = new UnityEngine.Vector3(value, value, value); } } 
+
         public static bool				ShowAllAxi      = false;
         public static DistanceUnit		DistanceUnit	= DistanceUnit.Meters; 
 
@@ -33,7 +29,8 @@ namespace Chisel.Editors
 
         public static bool				ScaleSnapping   { get { return Snapping.ScaleSnappingEnabled; } set { Snapping.ScaleSnappingEnabled = value; } }
         public static float				ScaleSnap		= 1.0f;
-            
+
+
         public static void Load()
         {
             AxisLockX		= EditorPrefs.GetBool ("LockAxisX",			false);
@@ -43,10 +40,7 @@ namespace Chisel.Editors
             BoundsSnapping	= EditorPrefs.GetBool ("BoundsSnapping",	true);
             PivotSnapping	= EditorPrefs.GetBool ("PivotSnapping",		false);
             ShowAllAxi		= !EditorPrefs.GetBool("UniformGrid",		true);
-            MoveSnapX		= EditorPrefs.GetFloat("MoveSnapX",			1.0f);
-            MoveSnapY		= EditorPrefs.GetFloat("MoveSnapY",			1.0f);
-            MoveSnapZ		= EditorPrefs.GetFloat("MoveSnapZ",			1.0f);
-
+            
             DistanceUnit	= (DistanceUnit)EditorPrefs.GetInt("DistanceUnit", (int)DistanceUnit.Meters);
 
             RotateSnapping	= EditorPrefs.GetBool ("RotateSnapping",	true);
@@ -57,7 +51,7 @@ namespace Chisel.Editors
 
             ShowGrid 		= EditorPrefs.GetBool ("ShowGrid",			true);
 
-            ChiselEditModeManager.EditModeIndex = EditorPrefs.GetInt("ChiselEditMode", (int)-1);
+            ChiselGeneratorManager.GeneratorIndex = EditorPrefs.GetInt("GeneratorIndex", (int)1);
         }
 
         public static void Save()
@@ -69,9 +63,6 @@ namespace Chisel.Editors
             EditorPrefs.SetBool("BoundsSnapping",	BoundsSnapping);
             EditorPrefs.SetBool("PivotSnapping",	PivotSnapping);
             EditorPrefs.SetBool("UniformGrid",		!ShowAllAxi);
-            EditorPrefs.SetFloat("MoveSnapX",		MoveSnapX);
-            EditorPrefs.SetFloat("MoveSnapY",		MoveSnapY);
-            EditorPrefs.SetFloat("MoveSnapZ",		MoveSnapZ);
 
             EditorPrefs.SetInt  ("DistanceUnit",	(int)DistanceUnit);
 
@@ -83,7 +74,7 @@ namespace Chisel.Editors
 
             EditorPrefs.SetBool("ShowGrid",   		ShowGrid);
 
-            EditorPrefs.SetInt("ChiselEditMode", ChiselEditModeManager.EditModeIndex);
+            EditorPrefs.SetInt("GeneratorIndex", ChiselGeneratorManager.GeneratorIndex);
         }
     };
 }

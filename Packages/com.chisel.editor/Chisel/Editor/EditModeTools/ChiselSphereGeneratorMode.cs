@@ -10,7 +10,7 @@ using UnityEditor.ShortcutManagement;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselSphereGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselSphereGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselSphere.kNodeTypeName;
         public override string ToolName => kToolName;
@@ -18,7 +18,7 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.SphereBuilderModeKey, ChiselKeyboardDefaults.SphereBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselSphereGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselSphereGeneratorMode); }
         #endregion
 
         public override void Reset()
@@ -40,6 +40,18 @@ namespace Chisel.Editors
 
 
         ChiselSphere sphere;
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
+            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
+            GUILayout.EndHorizontal();
+            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            GUILayout.EndVertical();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

@@ -99,7 +99,7 @@ namespace Chisel.Editors
                 surfaces.Length != 1)
                 return surfaces;
 
-            if (!ChiselEditModeManager.EditMode.CanSelectSurfaces)
+            if (ChiselSurfaceEditTool.IsActive())
                 return surfaces;
 
             // TODO: implement the ability to query this from the edit mode

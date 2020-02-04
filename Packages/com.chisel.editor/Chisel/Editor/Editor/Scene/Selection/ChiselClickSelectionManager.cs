@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnitySceneExtensions;
@@ -33,41 +32,11 @@ namespace Chisel.Editors
 
     public sealed class GUIClip
     {
-        delegate Vector2 UnclipDelegate(Vector2 pos);
-        static UnclipDelegate GUIClipUnclipPtr;
+        public delegate Vector2 UnclipDelegate(Vector2 pos);
+        public static readonly UnclipDelegate GUIClipUnclip = ReflectionExtensions.CreateDelegate<UnclipDelegate>("UnityEngine.GUIClip", "Unclip");
 
-        delegate GameObject FindSelectionBaseDelegate(GameObject go);
-        static FindSelectionBaseDelegate FindSelectionBasePtr;
-
-        static GUIClip()
-        {
-            var HandleUtilityType = typeof(HandleUtility);
-            var UnityEngineTypes = typeof(UnityEngine.GUIUtility).Assembly.GetTypes();
-            var GUIClipType = UnityEngineTypes.FirstOrDefault(t => t.FullName == "UnityEngine.GUIClip");
-
-            if (FindSelectionBasePtr == null)
-            {
-                var findSelectionBaseMethod = HandleUtilityType.GetMethod("FindSelectionBase", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(GameObject) }, null);
-                if (findSelectionBaseMethod != null)
-                    FindSelectionBasePtr = (FindSelectionBaseDelegate)Delegate.CreateDelegate(typeof(FindSelectionBaseDelegate), null, findSelectionBaseMethod, true);
-            }
-            if (GUIClipUnclipPtr == null && GUIClipType != null)
-            {
-                var unclipMethod = GUIClipType.GetMethod("Unclip", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(Vector2) }, null);
-                if (unclipMethod != null)
-                    GUIClipUnclipPtr = (UnclipDelegate)Delegate.CreateDelegate(typeof(UnclipDelegate), null, unclipMethod, true);
-            }
-        }
-
-        public static Vector2 GUIClipUnclip(Vector2 pos)
-        {
-            return GUIClipUnclipPtr(pos);
-        }
-
-        public static GameObject FindSelectionBase(GameObject go)
-        {
-            return FindSelectionBasePtr(go);
-        }
+        public delegate GameObject FindSelectionBaseDelegate(GameObject go);
+        public static readonly FindSelectionBaseDelegate FindSelectionBase = typeof(HandleUtility).CreateDelegate<FindSelectionBaseDelegate>("FindSelectionBase");
     }
 
     // TODO: clean up, rename
@@ -98,41 +67,13 @@ namespace Chisel.Editors
         #endregion
 
 
-        public static bool IntersectRayMesh(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit)
-        {
-            return IntersectRayMeshImpl(ray, mesh, matrix, out hit);
-        }
+        public delegate bool IntersectRayMeshFunc(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit);
+        public static IntersectRayMeshFunc IntersectRayMesh = typeof(HandleUtility).CreateDelegate<IntersectRayMeshFunc>("IntersectRayMesh");
+        public delegate GameObject PickClosestGameObjectFunc(Camera camera, int layers, Vector2 position, GameObject[] ignore, GameObject[] filter, out int materialIndex);
+        public static PickClosestGameObjectFunc PickClosestGO = typeof(HandleUtility).CreateDelegate<PickClosestGameObjectFunc>("Internal_PickClosestGO");
 
-
-        delegate bool IntersectRayMeshFunc(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit);
-        static IntersectRayMeshFunc IntersectRayMeshImpl;
-        delegate GameObject PickClosestGameObjectFunc(Camera camera, int layers, Vector2 position, GameObject[] ignore, GameObject[] filter, out int materialIndex);
-        static PickClosestGameObjectFunc pickClosestGO;
-        static FieldInfo pickClosestGameObjectDelegate;
-        
         static ChiselClickSelectionManager()
         {
-            var HandleUtilityType	= typeof(HandleUtility);
-
-            if (pickClosestGO == null ||
-                pickClosestGameObjectDelegate == null ||
-                IntersectRayMeshImpl == null)
-            { 
-                var IntersectRayMeshMethod = HandleUtilityType.GetMethod("IntersectRayMesh", BindingFlags.NonPublic | BindingFlags.Static);
-                if (IntersectRayMeshMethod != null)
-                    IntersectRayMeshImpl = (IntersectRayMeshFunc)Delegate.CreateDelegate(typeof(IntersectRayMeshFunc), null, IntersectRayMeshMethod, true);
-
-                var pickClosestGOMethod = HandleUtilityType.GetMethod("Internal_PickClosestGO", BindingFlags.NonPublic | BindingFlags.Static);
-                if (pickClosestGOMethod != null)
-                    pickClosestGO = (PickClosestGameObjectFunc)Delegate.CreateDelegate(typeof(PickClosestGameObjectFunc), null, pickClosestGOMethod, true);
-                
-                pickClosestGameObjectDelegate = HandleUtilityType.GetField("pickClosestGameObjectDelegate", BindingFlags.NonPublic | BindingFlags.Static);
-                //var delegateType			= pickClosestGameObjectDelegate.FieldType;
-                //var pickClosestGameObject	= typeof(ChiselSelectionManager).GetMethod("PickClosestGameObject");
-                //var methodDelegate		= Delegate.CreateDelegate(delegateType, pickClosestGameObject);
-                //pickClosestGameObjectDelegate.SetValue(null, methodDelegate);
-            }
-
             Selection.selectionChanged += ResetHashes;
         }
 
@@ -397,11 +338,10 @@ namespace Chisel.Editors
             try
             {
                 int materialIndex = -1;
-                if (pickClosestGO == null ||
-                    pickClosestGameObjectDelegate == null)
+                if (PickClosestGO == null)
                     gameObject = HandleUtility.PickGameObject(pickposition, ignore, out materialIndex);
                 else
-                    gameObject = pickClosestGO(camera, layers, pickposition, ignore, filter, out materialIndex);
+                    gameObject = PickClosestGO(camera, layers, pickposition, ignore, filter, out materialIndex);
 
             }
             finally
@@ -665,13 +605,6 @@ namespace Chisel.Editors
             pickposition = EditorGUIUtility.PointsToPixels(pickposition);
             pickposition.y = Screen.height - pickposition.y - camera.pixelRect.yMin;
             
-            /*
-            GameObject picked = null;
-            if (pickClosestGameObjectDelegate != null)
-            {
-                // TODO: figure out how to call a delegate through reflection with an out parameter ...
-            }*/
-
             intersection = new CSGTreeBrushIntersection
             {
                 surfaceID = -1,

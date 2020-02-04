@@ -116,7 +116,7 @@ namespace Chisel.Editors
                 position            = EditorGUI.IndentedRect(position);
                 var indentOffset    = position.x - originalPosition.x;
                 
-                var showMaterial    = (ChiselEditorUtility.GetContextWidth() > 430);
+                var showMaterial    = (ChiselEditorUtility.ContextWidth > 430);
 
                 var physicMaterialPrefixRect    = originalPosition;
                 physicMaterialPrefixRect.height = EditorGUI.GetPropertyHeight(SerializedPropertyType.ExposedReference, GUIContent.none);

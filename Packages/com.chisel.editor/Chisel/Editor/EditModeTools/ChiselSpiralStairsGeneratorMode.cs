@@ -10,7 +10,7 @@ using UnityEditor.ShortcutManagement;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselSpiralStairsGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselSpiralStairsGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselSpiralStairs.kNodeTypeName;
         public override string ToolName => kToolName;
@@ -18,11 +18,11 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.SpiralStairsBuilderModeKey, ChiselKeyboardDefaults.SpiralStairsBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselSpiralStairsGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselSpiralStairsGeneratorMode); }
         #endregion
         
         // TODO: Handle forcing operation types
-        CSGOperationType? forceOperation = null;
+        CSGOperationType? forceOperation = null; // TODO: WHY??
 
         // TODO: Ability to modify default settings
         // TODO: Store/retrieve default settings
@@ -31,6 +31,13 @@ namespace Chisel.Editors
         float           stepHeight              = ChiselSpiralStairsDefinition.kDefaultStepHeight;
 
         ChiselSpiralStairs spiralStairs;
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.BeginVertical();
+            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            GUILayout.EndVertical();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

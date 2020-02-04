@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEditor;
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
 using Chisel.Core;
 using Chisel.Components;
@@ -165,63 +163,16 @@ namespace Chisel.Editors
         delegate bool HasInstancingDelegate(Shader s);
 
 
-        static LightmapParametersGUIDelegate	LightmapParametersGUI;
-        static GetCachedMeshSurfaceAreaDelegate	GetCachedMeshSurfaceArea;
-        static HasClampedResolutionDelegate		HasClampedResolution;
-        static HasUVOverlapsDelegate			HasUVOverlaps;
-        static HasInstancingDelegate			HasInstancing;
-        static bool	reflectionInitialized = false;
-
-        void InitTypes()
-        {
-            if (reflectionInitialized)
-                return;
-            reflectionInitialized = true;
-
-            var unityEditorTypes = typeof(UnityEditor.SceneView).Assembly.GetTypes();
-            var meshRendererEditorType = unityEditorTypes.FirstOrDefault(t => t.FullName == "UnityEditor.MeshRendererEditor");
-            var internalMeshUtilType = unityEditorTypes.FirstOrDefault(t => t.FullName == "UnityEditor.InternalMeshUtil");
-            var lightmapEditorSettingsType = typeof(LightmapEditorSettings);
-            var shaderUtilType = typeof(ShaderUtil);
-
-            if (meshRendererEditorType != null)
-            {
-                //static private bool LightmapParametersGUI(SerializedProperty prop, GUIContent content)
-                var lightmapParametersGUIMethod = meshRendererEditorType.GetMethod("LightmapParametersGUI", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                if (lightmapParametersGUIMethod != null)
-                    LightmapParametersGUI = (LightmapParametersGUIDelegate)Delegate.CreateDelegate(typeof(LightmapParametersGUIDelegate), null, lightmapParametersGUIMethod, true);
-            }
-
-            if (internalMeshUtilType != null)
-            {
-                //public static float GetCachedMeshSurfaceArea(MeshRenderer meshRenderer);
-                var getCachedMeshSurfaceAreaMethod = internalMeshUtilType.GetMethod("GetCachedMeshSurfaceArea", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                if (getCachedMeshSurfaceAreaMethod != null)
-                    GetCachedMeshSurfaceArea = (GetCachedMeshSurfaceAreaDelegate)Delegate.CreateDelegate(typeof(GetCachedMeshSurfaceAreaDelegate), null, getCachedMeshSurfaceAreaMethod, true);
-            }
-
-            {
-                //static internal bool HasClampedResolution(Renderer renderer);
-                var hasClampedResolutionMethod = lightmapEditorSettingsType.GetMethod("HasClampedResolution", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                if (hasClampedResolutionMethod != null)
-                    HasClampedResolution = (HasClampedResolutionDelegate)Delegate.CreateDelegate(typeof(HasClampedResolutionDelegate), null, hasClampedResolutionMethod, true);
-            }
-
-            { 
-                //static internal bool HasUVOverlaps(Renderer renderer);
-                var hasUVOverlapsMethod = lightmapEditorSettingsType.GetMethod("HasUVOverlaps", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                if (hasUVOverlapsMethod != null)
-                    HasUVOverlaps = (HasUVOverlapsDelegate)Delegate.CreateDelegate(typeof(HasUVOverlapsDelegate), null, hasUVOverlapsMethod, true);
-            }
-
-            { 
-                //internal static bool HasInstancing(Shader s);
-                var hasInstancingMethod = shaderUtilType.GetMethod("HasInstancing", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                if (hasInstancingMethod != null)
-                    HasInstancing = (HasInstancingDelegate)Delegate.CreateDelegate(typeof(HasInstancingDelegate), null, hasInstancingMethod, true);
-            }
-        }
-
+#if UNITY_2020_OR_NEWER
+        static LightmapParametersGUIDelegate	LightmapParametersGUI = ReflectionExtensions.CreateDelegate<LightmapParametersGUIDelegate>("UnityEditor.SharedLightingSettingsEditor", "LightmapParametersGUI");
+#else
+        static LightmapParametersGUIDelegate    LightmapParametersGUI = ReflectionExtensions.CreateDelegate<LightmapParametersGUIDelegate>("UnityEditor.LightingSettingsInspector", "LightmapParametersGUI");
+#endif
+        static GetCachedMeshSurfaceAreaDelegate	GetCachedMeshSurfaceArea = ReflectionExtensions.CreateDelegate<GetCachedMeshSurfaceAreaDelegate>("UnityEditor.InternalMeshUtil", "GetCachedMeshSurfaceArea");
+        static HasClampedResolutionDelegate		HasClampedResolution = typeof(LightmapEditorSettings).CreateDelegate<HasClampedResolutionDelegate>("HasClampedResolution");
+        static HasUVOverlapsDelegate			HasUVOverlaps = typeof(LightmapEditorSettings).CreateDelegate<HasUVOverlapsDelegate>("HasUVOverlaps");
+        static HasInstancingDelegate			HasInstancing = typeof(ShaderUtil).CreateDelegate<HasInstancingDelegate>("HasInstancing");
+        
         internal void OnEnable()
         {
             if (ReflectionProbeUsageOptionsContents == null)
@@ -261,7 +212,7 @@ namespace Chisel.Editors
             probeAnchorProp						= serializedObject.FindProperty("renderSettings.probeAnchor");
 #if UNITY_2017_2_OR_ABOVE
             stitchLightmapSeamsProp				= serializedObject.FindProperty("renderSettings.stitchLightmapSeams");
-#endif			
+#endif
 
             convexProp							= serializedObject.FindProperty("colliderSettings.convex");
             isTriggerProp						= serializedObject.FindProperty("colliderSettings.isTrigger");
@@ -797,8 +748,12 @@ namespace Chisel.Editors
 
         void RenderRenderingLayer()
         {
+            if (target == null || Tools.current != Tool.Custom || !ChiselShapeEditTool.IsActive())
+                return;
+
+            // TODO: why are we doing this again?
             bool usingSRP = GraphicsSettings.renderPipelineAsset != null;
-            if (!usingSRP || target == null || !ChiselEditModeManager.EditMode.EnableComponentEditors)
+            if (!usingSRP)
                 return;
 
             EditorGUI.showMixedValue = renderingLayerMaskProp.hasMultipleDifferentValues;
@@ -885,8 +840,6 @@ namespace Chisel.Editors
         
         public override void OnInspectorGUI()
         {
-            InitTypes();
-
             CheckForTransformationChanges(serializedObject);
 
             if (IsDefaultModel())

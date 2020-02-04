@@ -116,7 +116,7 @@ namespace Chisel.Editors
             get { return visualizationMode; }
             set
             {
-                visualizationMode = value;
+                visualizationMode       = value;
                 updateBrushWireframe	= true;
                 updateSurfaceWireframe	= true;
             }
@@ -147,7 +147,7 @@ namespace Chisel.Editors
             Reset();
         }
 
-        internal void OnEditModeChanged(IChiselToolMode prevEditMode, IChiselToolMode newEditMode)
+        internal void OnEditModeChanged()
         {
             // Defer since we could potentially get several events before we actually render
             // also, not everything might be set up correctly just yet.
@@ -554,7 +554,7 @@ namespace Chisel.Editors
 
                         if ((VisualizationMode & VisualizationMode.Outline) == VisualizationMode.Outline)
                         {
-                            var directSelect = !ChiselEditModeManager.EditMode.ShowCompleteOutline &&
+                            var directSelect = ChiselSurfaceEditTool.IsActive() &&
                                                ((brush == outline.brush && !anySelected) || (anySelected && ChiselSyncSelection.IsBrushVariantSelected(brush)));
 
                             // TODO: tweak look of selection, figure out how to do backfaced lighting of edges, for clarity
@@ -662,6 +662,9 @@ namespace Chisel.Editors
                 return;
 
             var camera = sceneView.camera;
+
+            if (Tools.current != Tool.Custom)
+                VisualizationMode = VisualizationMode.Outline;
 
             // defer surface updates when it's not currently visible
             if ((VisualizationMode & (VisualizationMode.Outline | VisualizationMode.SimpleOutline)) != VisualizationMode.None)

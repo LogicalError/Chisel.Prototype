@@ -10,7 +10,7 @@ using UnityEditor.ShortcutManagement;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselBoxGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselBoxGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselBox.kNodeTypeName;
         public override string ToolName => kToolName;
@@ -18,7 +18,7 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.BoxBuilderModeKey, ChiselKeyboardDefaults.BoxBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselBoxGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselBoxGeneratorMode); }
         #endregion
 
         public override void Reset()
@@ -26,15 +26,25 @@ namespace Chisel.Editors
             BoxExtrusionHandle.Reset();
             box = null;
         }
-        
+
         ChiselBox box;
 
-        // TODO: Handle forcing operation types
-        CSGOperationType? forceOperation = null;
-        
-        // TODO: Ability to modify default settings
         // TODO: Store/retrieve default settings
+        CSGOperationType? forceOperation = null;
         bool generateFromCenterXZ = false;
+
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
+            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
+            GUILayout.EndHorizontal();
+            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            GUILayout.EndVertical();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

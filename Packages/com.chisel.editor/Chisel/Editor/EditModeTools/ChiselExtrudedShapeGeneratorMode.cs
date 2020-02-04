@@ -10,7 +10,7 @@ using UnityEditor.ShortcutManagement;
 
 namespace Chisel.Editors
 {
-    public sealed class ChiselExtrudedShapeGeneratorMode : ChiselGeneratorToolMode
+    public sealed class ChiselExtrudedShapeGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = "Free Draw";
         public override string ToolName => kToolName;
@@ -18,7 +18,7 @@ namespace Chisel.Editors
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + "Free Drawn Shape";
         [Shortcut(kToolShotcutName, ChiselKeyboardDefaults.FreeBuilderModeKey, ChiselKeyboardDefaults.FreeBuilderModeModifiers, displayName = kToolShotcutName)]
-        public static void StartGeneratorMode() { ChiselEditModeManager.EditModeType = typeof(ChiselExtrudedShapeGeneratorMode); }
+        public static void StartGeneratorMode() { ChiselGeneratorManager.GeneratorType = typeof(ChiselExtrudedShapeGeneratorMode); }
         #endregion
 
         public override void Reset()
@@ -30,6 +30,17 @@ namespace Chisel.Editors
         ChiselExtrudedShape extrudedShape;
         // TODO: Handle forcing operation types
         CSGOperationType? forceOperation = null;
+        public override void OnSceneSettingsGUI()
+        {
+            // TODO: implement
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
+            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+        }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {

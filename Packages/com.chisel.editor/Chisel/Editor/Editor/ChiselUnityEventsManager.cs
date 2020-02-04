@@ -3,8 +3,8 @@ using Chisel.Components;
 using UnitySceneExtensions;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
+using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -60,8 +60,6 @@ namespace Chisel.Editors
             UnityEditor.Undo.postprocessModifications					+= OnPostprocessModifications;
 
 #if UNITY_2019_1_OR_NEWER
-            UnityEditor.SceneView.beforeSceneGui                        -= OnBeforeSceneGUI;
-            UnityEditor.SceneView.beforeSceneGui                        += OnBeforeSceneGUI;
             UnityEditor.SceneView.duringSceneGui                        -= OnDuringSceneGUI;
             UnityEditor.SceneView.duringSceneGui                        += OnDuringSceneGUI;
 #else
@@ -84,8 +82,8 @@ namespace Chisel.Editors
             ChiselGeneratedModelMeshManager.PostReset -= OnPostResetModels;
             ChiselGeneratedModelMeshManager.PostReset += OnPostResetModels;
 
-            ChiselEditModeManager.EditModeChanged -= OnEditModeChanged;
-            ChiselEditModeManager.EditModeChanged += OnEditModeChanged;
+            EditorTools.activeToolChanged -= OnEditModeChanged;
+            EditorTools.activeToolChanged += OnEditModeChanged;
 
             ChiselClickSelectionManager.Instance.OnReset();
             ChiselOutlineRenderer.Instance.OnReset();
@@ -100,93 +98,7 @@ namespace Chisel.Editors
         }
         
         
-        private static Type			m_annotationUtility;
-        private static PropertyInfo m_showGridPropContainer;
-
-        private static PropertyInfo m_showUnityGrid
-        {
-            get
-            {
-                if (m_showGridPropContainer == null)
-                {
-                    m_annotationUtility = Type.GetType("UnityEditor.AnnotationUtility,UnityEditor.dll");
-                    m_showGridPropContainer = m_annotationUtility.GetProperty("showGrid", BindingFlags.Static | BindingFlags.NonPublic);
-                }
-                return m_showGridPropContainer;
-            }
-        }
-
-        public static bool ShowUnityGrid
-        {
-            get
-            {
-                return (bool)m_showUnityGrid.GetValue(null, null);
-            }
-            set
-            {
-                m_showUnityGrid.SetValue(null, value, null);
-            }
-        }
-     
-        private static void GridOnSceneGUI(SceneView sceneView)
-        {
-            if (Event.current.type != EventType.Repaint)
-                return;
-
-            if (ShowUnityGrid)
-            {
-                ShowUnityGrid = false;
-                ChiselEditorSettings.Load();
-                ChiselEditorSettings.ShowGrid = false;
-                ChiselEditorSettings.Save();
-            }
-
-            if (Tools.pivotRotation == PivotRotation.Local) 
-            {
-                var activeTransform = Selection.activeTransform;
-
-                var rotation	= Tools.handleRotation;
-                var center		= (activeTransform && activeTransform.parent) ? activeTransform.parent.position : Vector3.zero;
-
-                UnitySceneExtensions.Grid.defaultGrid.GridToWorldSpace = Matrix4x4.TRS(center, rotation, Vector3.one);
-            } else
-            {
-                UnitySceneExtensions.Grid.defaultGrid.GridToWorldSpace = Matrix4x4.identity;
-            }
-
-            if (ChiselEditorSettings.ShowGrid)
-            {
-                var grid = UnitySceneExtensions.Grid.HoverGrid;
-                if (grid != null)
-                {
-                    grid.Spacing = UnitySceneExtensions.Grid.defaultGrid.Spacing;
-                } else
-                { 
-                    grid = UnitySceneExtensions.Grid.ActiveGrid;
-                }
-                grid.Render(sceneView);
-            }
-
-            if (UnitySceneExtensions.Grid.debugGrid != null)
-            {
-                UnitySceneExtensions.Grid.debugGrid.Render(sceneView);
-            }
-        }
-
-        static void OnBeforeSceneGUI(SceneView sceneView)
-        {
-            var prevSkin = GUI.skin;
-            GUI.skin = ChiselSceneGUIStyle.GetSceneSkin(); 
-            try
-            {
-                ChiselSceneGUIStyle.Update();
-                ChiselSceneBottomGUI.OnSceneGUI(sceneView);
-            }
-            finally
-            {
-                GUI.skin = prevSkin;
-            }
-        }
+       
 
         static void OnDuringSceneGUI(SceneView sceneView)
         {
@@ -194,9 +106,9 @@ namespace Chisel.Editors
             GUI.skin = ChiselSceneGUIStyle.GetSceneSkin();
             try
             {
+                ChiselSceneGUIStyle.Update();
                 var dragArea = ChiselGUIUtility.GetRectForEditorWindow(sceneView);
-                GridOnSceneGUI(sceneView);
-                ChiselEditModeGUI.OnSceneGUI(sceneView, dragArea);
+                ChiselGridSettings.GridOnSceneGUI(sceneView);
                 ChiselOutlineRenderer.Instance.OnSceneGUI(sceneView);
 
                 ChiselDragAndDropManager.Instance.OnSceneGUI(sceneView);
@@ -209,26 +121,24 @@ namespace Chisel.Editors
         }
 
 #if !UNITY_2019_1_OR_NEWER
-
         static void OnSceneGUI(SceneView sceneView)
         {
-            OnBeforeSceneGUI(sceneView);
             OnDuringSceneGUI(sceneView);
         }
 #endif
 
-        private static void OnEditModeChanged(IChiselToolMode prevEditMode, IChiselToolMode newEditMode)
+        private static void OnEditModeChanged()
         {
-            ChiselOutlineRenderer.Instance.OnEditModeChanged(prevEditMode, newEditMode);
+            ChiselOutlineRenderer.Instance.OnEditModeChanged();
+            if (Tools.current != Tool.Custom)
+                ChiselGeneratorManager.ActivateTool(null);
         }
 
         private static void OnSelectionChanged()
         {
             ChiselClickSelectionManager.Instance.OnSelectionChanged();
             ChiselOutlineRenderer.Instance.OnSelectionChanged();
-            ChiselEditModeGUI.Instance.OnSelectionChanged();
-            //Editors.ChiselManagedHierarchyView.RepaintAll();
-            //Editors.ChiselNativeHierarchyView.RepaintAll();
+            ChiselGeneratorManager.Instance.OnSelectionChanged();
         }
 
         private static void OnSurfaceSelectionChanged()
@@ -265,17 +175,6 @@ namespace Chisel.Editors
             Editors.ChiselManagedHierarchyView.RepaintAll();
             Editors.ChiselInternalHierarchyView.RepaintAll(); 
         }
-
-        /*
-        private static void OnHierarchyWindowChanged()
-        {
-            if (ChiselNodeHierarchyManager.CheckHierarchyModifications())
-            {
-                Editors.ChiselManagedHierarchyView.RepaintAll();
-                Editors.ChiselNativeHierarchyView.RepaintAll(); 
-            }
-        }
-        */
 
         private static void OnPrefabInstanceUpdated(GameObject instance)
         {
@@ -330,7 +229,7 @@ namespace Chisel.Editors
             ChiselOutlineRenderer.Instance.OnTransformationChanged();
         }
 
-        static HashSet<ChiselNode>		modifiedNodes		= new HashSet<ChiselNode>();
+        static HashSet<ChiselNode>	modifiedNodes		= new HashSet<ChiselNode>();
         static HashSet<Transform>	processedTransforms = new HashSet<Transform>();
         
         private static UnityEditor.UndoPropertyModification[] OnPostprocessModifications(UnityEditor.UndoPropertyModification[] modifications)

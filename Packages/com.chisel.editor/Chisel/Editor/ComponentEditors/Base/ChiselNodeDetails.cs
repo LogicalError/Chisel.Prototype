@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Chisel;
-using System.Reflection;
 using Chisel.Core;
 using Chisel.Components;
 

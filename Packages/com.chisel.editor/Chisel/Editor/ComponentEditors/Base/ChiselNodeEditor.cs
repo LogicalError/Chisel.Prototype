@@ -5,9 +5,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Chisel;
-using System.Reflection;
 using Chisel.Core;
 using Chisel.Components;
+using UnityEditor.EditorTools;
 
 namespace Chisel.Editors
 {
@@ -367,83 +367,11 @@ namespace Chisel.Editors
                 EditorGUIUtility.ExitGUI();
         }
 
-        class Styles
-        {
-            public GUIStyle[] leftButton = new GUIStyle[2];
-            public GUIStyle[] midButton = new GUIStyle[2];
-            public GUIStyle[] rightButton = new GUIStyle[2];
-
-            public Styles()
-            {
-                leftButton[0] = new GUIStyle(EditorStyles.miniButtonLeft) { stretchWidth = false, stretchHeight = false };
-                leftButton[0].padding.top += 1;
-                leftButton[0].padding.bottom += 3;
-                leftButton[1] = new GUIStyle(leftButton[0]);
-                leftButton[1].normal.background = leftButton[0].active.background;
-
-                midButton[0] = new GUIStyle(EditorStyles.miniButtonMid) { stretchWidth = false, stretchHeight = false };
-                midButton[0].padding.top += 1;
-                midButton[0].padding.bottom += 3;
-                midButton[1] = new GUIStyle(midButton[0]);
-                midButton[1].normal.background = midButton[0].active.background;
-
-                rightButton[0] = new GUIStyle(EditorStyles.miniButtonRight) { stretchWidth = false, stretchHeight = false };
-                rightButton[0].padding.top += 1;
-                rightButton[0].padding.bottom += 3;
-                rightButton[1] = new GUIStyle(rightButton[0]);
-                rightButton[1].normal.background = rightButton[0].active.background;
-            }
-        };
-
-        static Styles styles;
-
-        static bool Toggle(bool selected, GUIContent[] content, GUIStyle[] style)
-        {
-            var selectedContent = selected ? content[1] : content[0];
-            var selectedStyle = selected ? style[1] : style[0];
-
-            return GUILayout.Button(selectedContent, selectedStyle);
-        }
-
         public static void ShowOperationChoices(SerializedProperty operationProp)
         {
             EditorGUILayout.BeginHorizontal();
-            ShowOperationChoicesInternal(operationProp);
+            ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
             EditorGUILayout.EndHorizontal();
-        }
-
-        // TODO: put somewhere else
-        public static void ShowOperationChoicesInternal(SerializedProperty operationProp)
-        {
-            if (operationProp == null)
-                return;
-
-            if (styles == null)
-                styles = new Styles();
-
-            const string AdditiveIconName           = "csg_addition";
-            const string SubtractiveIconName        = "csg_subtraction";
-            const string IntersectingIconName       = "csg_intersection";
-
-            const string AdditiveIconTooltip        = "Additive CSG Operation";
-            const string SubtractiveIconTooltip     = "Subtractive CSG Operation";
-            const string IntersectingIconTooltip    = "Intersecting CSG Operation";
-
-            var additiveIcon        = ChiselEditorResources.GetIconContent(AdditiveIconName, AdditiveIconTooltip);
-            var subtractiveIcon     = ChiselEditorResources.GetIconContent(SubtractiveIconName, SubtractiveIconTooltip);
-            var intersectingIcon    = ChiselEditorResources.GetIconContent(IntersectingIconName, IntersectingIconTooltip);
-
-            using (new EditorGUIUtility.IconSizeScope(new Vector2(16, 16)))     // This ensures that the icons will be the same size on regular displays and HDPI displays
-                                                                                // Note that the loaded images are different sizes on different displays
-            {
-                var operation = operationProp.hasMultipleDifferentValues ? ((CSGOperationType)255) : ((CSGOperationType)operationProp.enumValueIndex);
-                if (Toggle((operation == CSGOperationType.Additive), additiveIcon, styles.leftButton))
-                    operationProp.enumValueIndex = (int)CSGOperationType.Additive;
-                if (Toggle((operation == CSGOperationType.Subtractive), subtractiveIcon, styles.midButton))
-                    operationProp.enumValueIndex = (int)CSGOperationType.Subtractive;
-                if (Toggle((operation == CSGOperationType.Intersecting), intersectingIcon, styles.rightButton))
-                    operationProp.enumValueIndex = (int)CSGOperationType.Intersecting;
-            }
         }
 
         public override void OnInspectorGUI()
@@ -559,6 +487,7 @@ namespace Chisel.Editors
             UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             PreviewTextureManager.CleanUp();
             Reset();
+            Tools.hidden = false;
         }
 
         void OnEnable()
@@ -637,7 +566,7 @@ namespace Chisel.Editors
                 EditorGUI.BeginChangeCheck();
                 {
                     GUILayout.BeginHorizontal();
-                    ShowOperationChoicesInternal(operationProp);
+                    ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
                     if (typeof(T) != typeof(ChiselBrush)) ConvertIntoBrushesButton(serializedObject);
                     GUILayout.EndHorizontal();
 
@@ -652,10 +581,62 @@ namespace Chisel.Editors
             catch (Exception ex) { Debug.LogException(ex); }
         }
 
+        void OnDefaultSceneTools()
+        {
+            // TODO: somehow make snapped controls work with *any* transform
+            switch (Tools.current)
+            {
+                case Tool.Move:         Tools.hidden = true; OnMoveTool(); break;
+                case Tool.Rotate:       Tools.hidden = false; break;// TODO: implement 
+                case Tool.Scale:        Tools.hidden = false; break;// TODO: implement
+                case Tool.Rect:         Tools.hidden = false; break;// TODO: implement
+                case Tool.Transform:    Tools.hidden = false; break;// TODO: implement
+                default:
+                {
+                    Tools.hidden = false;
+                    break;
+                }
+            }
+        }
+
+        static void OnMoveTool()
+        {
+            var position = Tools.handlePosition;
+            var rotation = Tools.handleRotation;
+
+            EditorGUI.BeginChangeCheck();
+            // TODO: make this work with bounds!
+            var newPosition = UnitySceneExtensions.SceneHandles.PositionHandle(position, rotation);
+            if (EditorGUI.EndChangeCheck())
+            {
+                var delta = newPosition - position;
+                var transforms = Selection.transforms;
+                if (transforms != null && transforms.Length > 0)
+                {				
+                    MoveTransformsTo(transforms, delta);
+                }
+            }
+        }
+
+        static void MoveTransformsTo(Transform[] transforms, Vector3 delta)
+        {
+            Undo.RecordObjects(transforms, "Move Transforms");
+            foreach (var transform in transforms)
+                transform.position += delta;
+        }
+
         public void OnSceneGUI()
         {
-            if (!target || !ChiselEditModeManager.EditMode.EnableComponentEditors)
+            if (!target)
                 return;
+
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
+            if (Tools.current != Tool.Custom || !ChiselShapeEditTool.IsActive())
+            {
+                OnDefaultSceneTools();
+                return;
+            }
 
             var generator = target as T;
             if (GUIUtility.hotControl == 0)
