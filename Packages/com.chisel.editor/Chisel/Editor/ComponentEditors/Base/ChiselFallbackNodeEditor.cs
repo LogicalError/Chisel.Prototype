@@ -14,5 +14,6 @@ namespace Chisel.Editors
     [CanEditMultipleObjects]
     public sealed class ChiselFallbackNodeEditor : ChiselNodeEditor<ChiselNode>
     {
+        protected override void OnSettingsGUI(System.Object target, SceneView sceneView) { }
     }
 }

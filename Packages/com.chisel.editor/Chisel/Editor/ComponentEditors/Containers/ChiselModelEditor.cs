@@ -11,11 +11,16 @@ namespace Chisel.Editors
 {
     public sealed class ChiselModelDetails : ChiselNodeDetails<ChiselModel>
     {
-        const string ModelIconName = "csg_addition";
+        const string ModelIconName = "csg_model";
 
         public override GUIContent GetHierarchyIcon(ChiselModel node)
         {
             return ChiselEditorResources.GetIconContent(ModelIconName, node.NodeTypeName)[0];
+        }
+
+        public override bool HasValidState(ChiselModel node)
+        {
+            return node.HasValidState();
         }
     }
 
@@ -23,7 +28,7 @@ namespace Chisel.Editors
     [CanEditMultipleObjects]
     public sealed class ChiselModelEditor : ChiselNodeEditor<ChiselModel>
     {
-        [MenuItem("GameObject/Chisel/" + ChiselModel.kNodeTypeName, false, 0)]
+        [MenuItem("GameObject/Chisel/Create/" + ChiselModel.kNodeTypeName, false, 0)]
         static void CreateAsGameObject(MenuCommand menuCommand) { CreateAsGameObjectMenuCommand(menuCommand, ChiselModel.kNodeTypeName); }
 
 
@@ -837,9 +842,13 @@ namespace Chisel.Editors
             return false;
         }
 
-        
+        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        {
+        }
+
         public override void OnInspectorGUI()
         {
+            ChiselOptionsOverlay.AdditionalSettings = OnSettingsGUI;
             CheckForTransformationChanges(serializedObject);
 
             if (IsDefaultModel())

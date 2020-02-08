@@ -21,24 +21,35 @@ namespace Chisel.Editors
 
             public Styles()
             {
-                leftButton[0] = new GUIStyle(EditorStyles.miniButtonLeft) { stretchWidth = true, stretchHeight = true };
+                leftButton[0] = new GUIStyle(EditorStyles.miniButtonLeft) { stretchWidth = false, stretchHeight = true };
                 leftButton[0].padding.top += 3;
                 leftButton[0].padding.bottom += 3;
+                leftButton[0].padding.left += 3;
+                leftButton[0].padding.right += 4;
                 leftButton[0].fixedHeight += 5;
+
                 leftButton[1] = new GUIStyle(leftButton[0]);
                 leftButton[1].normal.background = leftButton[0].active.background;
 
-                midButton[0] = new GUIStyle(EditorStyles.miniButtonMid) { stretchWidth = true, stretchHeight = true };
+
+                midButton[0] = new GUIStyle(EditorStyles.miniButtonMid) { stretchWidth = false, stretchHeight = true };
                 midButton[0].padding.top += 3;
                 midButton[0].padding.bottom += 3;
+                midButton[0].padding.left += 3;
+                midButton[0].padding.right += 4;
                 midButton[0].fixedHeight += 5;
+
                 midButton[1] = new GUIStyle(midButton[0]);
                 midButton[1].normal.background = midButton[0].active.background;
 
-                rightButton[0] = new GUIStyle(EditorStyles.miniButtonRight) { stretchWidth = true, stretchHeight = true };
+
+                rightButton[0] = new GUIStyle(EditorStyles.miniButtonRight) { stretchWidth = false, stretchHeight = true };
                 rightButton[0].padding.top += 3;
                 rightButton[0].padding.bottom += 3;
+                rightButton[0].padding.left += 3;
+                rightButton[0].padding.right += 4;
                 rightButton[0].fixedHeight += 5;
+
                 rightButton[1] = new GUIStyle(rightButton[0]);
                 rightButton[1].normal.background = rightButton[0].active.background;
             }
@@ -74,17 +85,9 @@ namespace Chisel.Editors
             if (styles == null)
                 styles = new Styles();
 
-            const string AdditiveIconName           = "csg_addition";
-            const string SubtractiveIconName        = "csg_subtraction";
-            const string IntersectingIconName       = "csg_intersection";
-
-            const string AdditiveIconTooltip        = "Additive Boolean Operation";
-            const string SubtractiveIconTooltip     = "Subtractive Boolean Operation";
-            const string IntersectingIconTooltip    = "Intersecting Boolean Operation";
-
-            var additiveIcon        = ChiselEditorResources.GetIconContent(AdditiveIconName,        AdditiveIconTooltip);
-            var subtractiveIcon     = ChiselEditorResources.GetIconContent(SubtractiveIconName,     SubtractiveIconTooltip);
-            var intersectingIcon    = ChiselEditorResources.GetIconContent(IntersectingIconName,    IntersectingIconTooltip);
+            var additiveIcon        = ChiselDefaultGeneratorDetails.GetIconContent(CSGOperationType.Additive,     "Boolean Operation");
+            var subtractiveIcon     = ChiselDefaultGeneratorDetails.GetIconContent(CSGOperationType.Subtractive,  "Boolean Operation");
+            var intersectingIcon    = ChiselDefaultGeneratorDetails.GetIconContent(CSGOperationType.Intersecting, "Boolean Operation");
 
             using (new EditorGUIUtility.IconSizeScope(new Vector2(16, 16)))     // This ensures that the icons will be the same size on regular displays and HDPI displays
                                                                                 // Note that the loaded images are different sizes on different displays

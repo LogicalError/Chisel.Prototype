@@ -28,7 +28,14 @@ namespace Chisel.Components
         
         [SerializeField,HideInInspector] CSGOperationType operation; // NOTE: name is used in CSGOperationEditor
         public CSGOperationType Operation { get { return operation; } set { if (value == operation) return; operation = value; if (Node.Valid) Node.Operation = operation; } }
-        
+
+
+        // Will show a warning icon in hierarchy when generator has a problem (do not make this method slow, it is called a lot!)
+        public override bool HasValidState()
+        {
+            return Node.Valid;
+        }
+
         protected override void OnValidateInternal()
         {
             if (!Node.Valid)

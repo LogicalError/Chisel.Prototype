@@ -25,6 +25,8 @@ namespace Chisel.Components
         public void Reset() { OnResetInternal(); }
         protected virtual void OnResetInternal() { OnInitialize(); }
 
+        public abstract bool HasValidState();
+
         public virtual void OnInitialize() { }
         protected virtual void OnCleanup() {  }
 

@@ -19,6 +19,9 @@ namespace Chisel.Editors
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+                return 0;
+
             SerializedProperty smoothingGroupProp   = property.FindPropertyRelative(nameof(SurfaceDescription.smoothingGroup));
             return  UVMatrixPropertyDrawer.DefaultHeight +
                     kSpacing + 
@@ -29,6 +32,13 @@ namespace Chisel.Editors
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+            {
+                EditorGUI.BeginProperty(position, label, property);
+                EditorGUI.EndProperty();
+                return;
+            }
+
             SerializedProperty uv0Prop              = property.FindPropertyRelative(nameof(SurfaceDescription.UV0));
             SerializedProperty surfaceFlagsProp     = property.FindPropertyRelative(nameof(SurfaceDescription.surfaceFlags));
             SerializedProperty smoothingGroupProp   = property.FindPropertyRelative(nameof(SurfaceDescription.smoothingGroup));

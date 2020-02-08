@@ -12,19 +12,14 @@ namespace Chisel.Editors
 {
     public sealed class ChiselOperationDetails : ChiselNodeDetails<ChiselOperation>
     {
-        const string AdditiveIconName		= "csg_addition";
-        const string SubtractiveIconName	= "csg_subtraction";
-        const string IntersectingIconName	= "csg_intersection";
-
         public override GUIContent GetHierarchyIcon(ChiselOperation node)
         {
-            switch (node.Operation)
-            {
-                default:
-                case CSGOperationType.Additive:     return ChiselEditorResources.GetIconContent(AdditiveIconName,     $"Additive {node.NodeTypeName}")[0];
-                case CSGOperationType.Subtractive:  return ChiselEditorResources.GetIconContent(SubtractiveIconName,  $"Subtractive {node.NodeTypeName}")[0];
-                case CSGOperationType.Intersecting: return ChiselEditorResources.GetIconContent(IntersectingIconName, $"Intersecting {node.NodeTypeName}")[0];
-            }
+            return ChiselDefaultGeneratorDetails.GetHierarchyIcon(node.Operation, node.NodeTypeName);
+        }
+
+        public override bool HasValidState(ChiselOperation node)
+        {
+            return node.HasValidState();
         }
     }
 
@@ -32,7 +27,7 @@ namespace Chisel.Editors
     [CanEditMultipleObjects]
     public sealed class ChiselOperationEditor : ChiselNodeEditor<ChiselOperation>
     {
-        [MenuItem("GameObject/Chisel/" + ChiselOperation.kNodeTypeName, false, 0)]
+        [MenuItem("GameObject/Chisel/Create/" + ChiselOperation.kNodeTypeName, false, 0)]
         static void CreateAsGameObject(MenuCommand menuCommand) { CreateAsGameObjectMenuCommand(menuCommand, ChiselOperation.kNodeTypeName); }
 
         SerializedProperty operationProp;
@@ -56,7 +51,11 @@ namespace Chisel.Editors
             operationProp = null;
             passThroughProp = null;
         }
-        
+
+        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        {
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();

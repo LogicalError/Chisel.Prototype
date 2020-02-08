@@ -14,6 +14,8 @@ namespace Chisel.Editors
     // TODO: add tooltips
     public static class ChiselOptionsOverlay
     {
+        const string kRebuildIconName   = "rebuild";
+        const string kRebuildTooltip    = "Rebuild all generated meshes";
         public static void Rebuild()
         {
             var startTime = EditorApplication.timeSinceStartup;
@@ -22,14 +24,23 @@ namespace Chisel.Editors
             Debug.Log($"Full CSG rebuild done in {((csg_endTime - startTime) * 1000)} ms. ");
         }
 
+        public static ChiselOverlay.WindowFunction AdditionalSettings;
+
 
         const int kPrimaryOrder = int.MaxValue;
+        
+        static readonly GUIContent      kOverlayTitle   = new GUIContent("Chisel");
+        static readonly ChiselOverlay   kOverlay        = new ChiselOverlay(kOverlayTitle, DisplayControls, kPrimaryOrder);
 
-        static ChiselOverlay overlay = new ChiselOverlay(EditorGUIUtility.TrTextContent("Chisel"), DisplayControls, kPrimaryOrder);
-
-        static GUIContent rebuildButton = EditorGUIUtility.TrTextContent("Rebuild");
+        static GUIContent kRebuildButton;
 
         static SortedList<string, ChiselEditToolBase> editModes = new SortedList<string, ChiselEditToolBase>();
+
+        [InitializeOnLoadMethod]
+        static void Initialize()
+        {
+            kRebuildButton = ChiselEditorResources.GetIconContent(kRebuildIconName, kRebuildTooltip)[0];
+        }
 
         internal static void Register(ChiselEditToolBase editMode)
         {
@@ -77,35 +88,36 @@ namespace Chisel.Editors
                 return;
 
             EditorGUI.BeginChangeCheck();
-            GUILayout.BeginVertical(ChiselOverlay.kMinWidthLayout);
-            GUILayout.BeginHorizontal();
-
-            GUILayout.FlexibleSpace();
-            foreach (var editMode in editModes.Values)
-                EditModeButton(editMode);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-
-            GUILayout.FlexibleSpace();
-
-            // TODO: assign hotkey to rebuild, and possibly move it elsewhere to avoid it seemingly like a necessary action.
-            if (GUILayout.Button(rebuildButton))
             {
-                Rebuild();
+                if (AdditionalSettings != null)
+                {
+                    GUILayout.BeginVertical(ChiselOverlay.kMinWidthLayout);
+                    AdditionalSettings(target, sceneView);
+                    GUILayout.EndVertical();
+                    GUILayout.Space(10);
+                }
+
+                GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
+
+                foreach (var editMode in editModes.Values)
+                    EditModeButton(editMode);
+                GUILayout.FlexibleSpace();
+
+                // TODO: assign hotkey to rebuild, and possibly move it elsewhere to avoid it seemingly like a necessary action.
+
+                if (GUILayout.Toggle(false, kRebuildButton, GUI.skin.button, buttonOptions))
+                {
+                    Rebuild();
+                }
+                GUILayout.EndHorizontal();
             }
-
-            GUILayout.FlexibleSpace();
-
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
                 ChiselEditorSettings.Save();
         }
 
         public static void Show()
         {
-            overlay.Show();
+            kOverlay.Show();
         }
     }
 }

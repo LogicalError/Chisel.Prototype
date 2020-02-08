@@ -20,9 +20,24 @@ namespace Chisel.Editors
         const string                kSurfacePropertyName    = "Surface {0}";
         const string                kSurfacePathName        = "{0}[{1}]";
         static GUIContent           surfacePropertyContent  = new GUIContent();
-        
+
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+                return 0;
+            return base.GetPropertyHeight(property, label);
+        }
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+            {
+                EditorGUI.BeginProperty(position, label, property);
+                EditorGUI.EndProperty();
+                return;
+            }
+
             var surfacesProp = property.FindPropertyRelative(nameof(ChiselSurfaceDefinition.surfaces));
 
             EditorGUI.BeginProperty(position, label, surfacesProp);

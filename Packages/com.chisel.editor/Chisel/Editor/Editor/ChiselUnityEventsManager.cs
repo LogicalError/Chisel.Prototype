@@ -229,8 +229,8 @@ namespace Chisel.Editors
             ChiselOutlineRenderer.Instance.OnTransformationChanged();
         }
 
-        static HashSet<ChiselNode>	modifiedNodes		= new HashSet<ChiselNode>();
-        static HashSet<Transform>	processedTransforms = new HashSet<Transform>();
+        static readonly HashSet<ChiselNode>	modifiedNodes		= new HashSet<ChiselNode>();
+        static readonly HashSet<Transform>	processedTransforms = new HashSet<Transform>();
         
         private static UnityEditor.UndoPropertyModification[] OnPostprocessModifications(UnityEditor.UndoPropertyModification[] modifications)
         {

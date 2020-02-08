@@ -15,10 +15,11 @@ namespace Chisel.Editors
     {
         const int kPrimaryOrder = 99;
 
-        static ChiselOverlay overlay = new ChiselOverlay(EditorGUIUtility.TrTextContent("Grid"), DisplayControls, kPrimaryOrder);
+        static readonly GUIContent      kOverlayTitle               = new GUIContent("Grid");
+        static readonly ChiselOverlay   kOverlay                    = new ChiselOverlay(kOverlayTitle, DisplayControls, kPrimaryOrder);
 
-        static GUIContent doubleSnapDistanceButton = EditorGUIUtility.TrTextContent("+", "Double the snapping distance.\nHotkey: ]");
-        static GUIContent halveSnapDistanceButton = EditorGUIUtility.TrTextContent("-", "Halve the snapping distance.\nHotkey: [");
+        static readonly GUIContent      kDoubleSnapDistanceButton   = EditorGUIUtility.TrTextContent("+", "Double the snapping distance.\nHotkey: ]");
+        static readonly GUIContent      kHalveSnapDistanceButton    = EditorGUIUtility.TrTextContent("-", "Halve the snapping distance.\nHotkey: [");
 
         static GUILayoutOption sizeButtonWidth = GUILayout.Width(16);
 
@@ -33,11 +34,11 @@ namespace Chisel.Editors
             ChiselEditorSettings.ShowGrid = GUILayout.Toggle(ChiselEditorSettings.ShowGrid, "Show Grid", GUI.skin.button);
 
             ChiselEditorSettings.UniformSnapSize = EditorGUILayout.FloatField(ChiselEditorSettings.UniformSnapSize);
-            if (GUILayout.Button(halveSnapDistanceButton, EditorStyles.miniButtonLeft, sizeButtonWidth))
+            if (GUILayout.Button(kHalveSnapDistanceButton, EditorStyles.miniButtonLeft, sizeButtonWidth))
             {
                 SnappingKeyboard.HalfGridSize();
             }
-            if (GUILayout.Button(doubleSnapDistanceButton, EditorStyles.miniButtonRight, sizeButtonWidth))
+            if (GUILayout.Button(kDoubleSnapDistanceButton, EditorStyles.miniButtonRight, sizeButtonWidth))
             {
                 SnappingKeyboard.DoubleGridSize();
             }
@@ -49,7 +50,7 @@ namespace Chisel.Editors
 
         public static void Show()
         {
-            overlay.Show();
+            kOverlay.Show();
         }
     }
 }

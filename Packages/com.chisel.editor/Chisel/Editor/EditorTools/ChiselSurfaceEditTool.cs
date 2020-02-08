@@ -49,6 +49,7 @@ namespace Chisel.Editors
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
+            ChiselOptionsOverlay.AdditionalSettings = null;
             ChiselOptionsOverlay.Show();
             ChiselGridOptionsOverlay.Show();
 

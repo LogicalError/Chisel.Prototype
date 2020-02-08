@@ -62,12 +62,12 @@ namespace Chisel.Editors
                     gameObject.GetComponent<ChiselOperation>();
         }
 
-        [MenuItem("GameObject/Chisel/Operations/Additive", false, -1)] static void SetAdditiveOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Additive); }
-        [MenuItem("GameObject/Chisel/Operations/Additive", true)] static bool ValidateAdditiveOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
-        [MenuItem("GameObject/Chisel/Operations/Subtractive", false, -1)] static void SetSubtractiveOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Subtractive); }
-        [MenuItem("GameObject/Chisel/Operations/Subtractive", true)] static bool ValidateSubtractiveOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
-        [MenuItem("GameObject/Chisel/Operations/Intersecting", false, -1)] static void SetIntersectingOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Intersecting); }
-        [MenuItem("GameObject/Chisel/Operations/Intersecting", true)] static bool ValidateIntersectingOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
+        [MenuItem("GameObject/Chisel/Set operation/Additive", false, -1)] static void SetAdditiveOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Additive); }
+        [MenuItem("GameObject/Chisel/Set operation/Additive", true)] static bool ValidateAdditiveOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
+        [MenuItem("GameObject/Chisel/Set operation/Subtractive", false, -1)] static void SetSubtractiveOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Subtractive); }
+        [MenuItem("GameObject/Chisel/Set operation/Subtractive", true)] static bool ValidateSubtractiveOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
+        [MenuItem("GameObject/Chisel/Set operation/Intersecting", false, -1)] static void SetIntersectingOperation(MenuCommand menuCommand) { SetMenuOperation(menuCommand, CSGOperationType.Intersecting); }
+        [MenuItem("GameObject/Chisel/Set operation/Intersecting", true)] static bool ValidateIntersectingOperation(MenuCommand menuCommand) { return MenuValidateOperation(menuCommand); }
 
 
 
@@ -76,7 +76,7 @@ namespace Chisel.Editors
         {
             var gameObjects = Selection.gameObjects;
             if (gameObjects == null ||
-                gameObjects.Length == 1)
+                gameObjects.Length <= 1)
                 return;
 
             for (int i = 0; i < gameObjects.Length; i++)
@@ -127,6 +127,8 @@ namespace Chisel.Editors
             }
             return true;
         }
+
+        public static bool InSceneSettingsContext = false;
     }
 
     public abstract class ChiselNodeEditor<T> : ChiselNodeEditorBase
@@ -178,14 +180,10 @@ namespace Chisel.Editors
 
             if (parentTransform)
             {
-
                 component = ChiselComponentFactory.Create<T>(name, parentTransform);
             } else
             {
-                if (typeof(T) == typeof(ChiselModel))
-                    component = ChiselComponentFactory.Create<T>(name);
-                else
-                    component = ChiselComponentFactory.Create<T>(name, ChiselModelManager.GetActiveModelOrCreate());
+                component = ChiselComponentFactory.Create<T>(name);
             }
 
             var gameObject  = component.gameObject;
@@ -218,9 +216,9 @@ namespace Chisel.Editors
         }
 
 
-        static readonly string     kDefaultModelContents = "This node is not a child of a model, and is added to the default model. "+
+        static readonly string     kDefaultModelContents = "This node is not a child of a model, " +
                                                            "It is recommended that you explicitly add this node to a model.";
-        static readonly GUIContent kCreateAndAddToModel  = new GUIContent("Create new model");
+        static readonly GUIContent kCreateAndAddToModel  = new GUIContent("Insert into new model");
         static readonly GUIContent kAddToActiveModel     = new GUIContent("Move to active model");
 
         static void MoveTargetsUnderModel(UnityEngine.Object[] targetObjects, ChiselModel model)
@@ -328,6 +326,7 @@ namespace Chisel.Editors
 
 
         // TODO: put somewhere else
+        static GUILayoutOption kHeaderHeight = GUILayout.Height(22.0f);
         internal static void ConvertIntoBrushesButton(SerializedObject serializedObject)
         {
             bool singular = false;
@@ -343,12 +342,12 @@ namespace Chisel.Editors
             }
             if (multiple)
             {
-                if (!GUILayout.Button(convertToBrushesContent, GUILayout.ExpandHeight(true)))
+                if (!GUILayout.Button(convertToBrushesContent, kHeaderHeight))
                     return;
             } else
             if (singular)
             {
-                if (!GUILayout.Button(convertToBrushContent, GUILayout.ExpandHeight(true)))
+                if (!GUILayout.Button(convertToBrushContent, kHeaderHeight))
                     return;
             } else
                 return;
@@ -374,12 +373,15 @@ namespace Chisel.Editors
             EditorGUILayout.EndHorizontal();
         }
 
+        protected abstract void OnSettingsGUI(System.Object target, SceneView sceneView);
+
         public override void OnInspectorGUI()
         {
+            if (Tools.current != Tool.Custom || EditorTools.activeToolType == typeof(ChiselShapeEditTool))
+                ChiselOptionsOverlay.AdditionalSettings = OnSettingsGUI;
             CheckForTransformationChanges(serializedObject);
             ShowDefaultModelMessage(serializedObject.targetObjects);
         }
-
     }
 
     public class ChiselDefaultGeneratorDetails : IChiselNodeDetails
@@ -387,22 +389,39 @@ namespace Chisel.Editors
         const string kAdditiveIconName		= "csg_addition";
         const string kSubtractiveIconName	= "csg_subtraction";
         const string kIntersectingIconName	= "csg_intersection";
-        
+
+        public static GUIContent GetHierarchyIcon(CSGOperationType operation, string name)
+        {
+            return GetIconContent(operation, name)[0];
+        }
+
+        public static GUIContent[] GetIconContent(CSGOperationType operation, string name)
+        {
+            switch (operation)
+            {
+                default:
+                case CSGOperationType.Additive:     return ChiselEditorResources.GetIconContent(kAdditiveIconName,      $"{nameof(CSGOperationType.Additive)} {name}");
+                case CSGOperationType.Subtractive:  return ChiselEditorResources.GetIconContent(kSubtractiveIconName,   $"{nameof(CSGOperationType.Subtractive)} {name}");
+                case CSGOperationType.Intersecting: return ChiselEditorResources.GetIconContent(kIntersectingIconName,  $"{nameof(CSGOperationType.Intersecting)} {name}");
+            }
+        }
+
         public GUIContent GetHierarchyIconForGenericNode(ChiselNode node)
         {
             var generator = node as ChiselGeneratorComponent;
             if (generator == null)
                 return GUIContent.none;
 
-            // TODO: when something is wrong with the node, we should show an indicator here
+            return GetHierarchyIcon(generator.Operation, node.NodeTypeName);
+        }
 
-            switch (generator.Operation)
-            {
-                default:
-                case CSGOperationType.Additive:     return ChiselEditorResources.GetIconContent(kAdditiveIconName,     $"Additive {node.NodeTypeName}")[0];
-                case CSGOperationType.Subtractive:  return ChiselEditorResources.GetIconContent(kSubtractiveIconName,  $"Subtractive {node.NodeTypeName}")[0];
-                case CSGOperationType.Intersecting: return ChiselEditorResources.GetIconContent(kIntersectingIconName, $"Intersecting {node.NodeTypeName}")[0];
-            }
+        public bool HasValidState(ChiselNode node)
+        {
+            var generator = node as ChiselGeneratorComponent;
+            if (generator == null)
+                return false;
+
+            return node.HasValidState();
         }
     }
 
@@ -461,15 +480,43 @@ namespace Chisel.Editors
             }
         }
 
+        protected void OnDefaultSettingsGUI(System.Object target, SceneView sceneView)
+        {
+            InSceneSettingsContext = true;
+            try
+            {
+                EditorGUI.BeginChangeCheck();
+                {
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        EditorGUILayout.PropertyField(children[i], true);
+                    }
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    OnTargetModifiedInInspector();
+                }
+            }
+            finally
+            {
+                InSceneSettingsContext = false;
+            }
+        }
+
 
         protected virtual void ResetInspector() { ResetDefaultInspector(); } 
         protected virtual void InitInspector() { InitDefaultInspector(); }
 
+        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        {
+            ShowInspectorHeader();
+            OnDefaultSettingsGUI(target, sceneView);
+        }
         protected virtual void OnInspector() { OnDefaultInspector(); }
 
         protected virtual void OnTargetModifiedInInspector() { }
         protected virtual void OnTargetModifiedInScene() { }
-        protected virtual bool OnGeneratorValidate(T generator) { return generator.isActiveAndEnabled; }
+        protected virtual bool OnGeneratorValidate(T generator) { return generator.isActiveAndEnabled && generator.HasValidState(); }
         protected virtual void OnGeneratorSelected(T generator) { }
         protected virtual void OnGeneratorDeselected(T generator) { }
         protected abstract void OnScene(SceneView sceneView, T generator);
@@ -504,6 +551,19 @@ namespace Chisel.Editors
             UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             UnityEditor.Undo.undoRedoPerformed += OnUndoRedoPerformed;
             InitInspector();
+        }
+
+        protected bool HasValidState()
+        {
+            foreach (var target in targets)
+            {
+                var generator = target as T;
+                if (!generator)
+                    continue;
+                if (!generator.HasValidState())
+                    return false;
+            }
+            return true;
         }
 
         void UpdateSelection()
@@ -552,6 +612,14 @@ namespace Chisel.Editors
                 knownTargets.Remove(removeTarget);
         }
 
+        public void ShowInspectorHeader()
+        {
+            GUILayout.BeginHorizontal();
+            ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
+            if (typeof(T) != typeof(ChiselBrush)) ConvertIntoBrushesButton(serializedObject);
+            GUILayout.EndHorizontal();
+        }
+
         public override void OnInspectorGUI()
         {
             if (!target)
@@ -565,11 +633,7 @@ namespace Chisel.Editors
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    GUILayout.BeginHorizontal();
-                    ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
-                    if (typeof(T) != typeof(ChiselBrush)) ConvertIntoBrushesButton(serializedObject);
-                    GUILayout.EndHorizontal();
-
+                    ShowInspectorHeader();
                     OnInspector();
                 }
                 if (EditorGUI.EndChangeCheck())

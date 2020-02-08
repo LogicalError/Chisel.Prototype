@@ -99,11 +99,20 @@ namespace Chisel.Editors
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+                return 0;
             return DefaultHeight;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+            {
+                EditorGUI.BeginProperty(position, label, property);
+                EditorGUI.EndProperty();
+                return;
+            }
+
             EditorGUI.BeginProperty(position, label, property); 
             try
             {

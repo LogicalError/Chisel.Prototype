@@ -52,6 +52,18 @@ namespace Chisel.Components
             base.OnResetInternal();
         }
 
+        // Will show a warning icon in hierarchy when generator has a problem (do not make this method slow, it is called a lot!)
+        public override bool HasValidState()
+        {
+            if (!ValidNodes)
+                return false;
+
+            if (ChiselGeneratedComponentManager.IsDefaultModel(hierarchyItem.Model))
+                return false;
+
+            return true;
+        }
+
         //**Temporary hack to ensure that a BrushContainerAsset remains unique when duplicated so that we can control when we share a BrushContainerAsset**//
         #region HandleDuplication
 #if UNITY_EDITOR

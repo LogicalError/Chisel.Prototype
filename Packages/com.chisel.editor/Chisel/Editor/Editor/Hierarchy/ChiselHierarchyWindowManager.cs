@@ -26,7 +26,7 @@ namespace Chisel.Editors
     {
         public static void RenderIcon(Rect selectionRect, GUIContent icon)
         {
-            const float iconSize = 16;
+            const float iconSize = 17;
             const float indent   = 0;
             var max = selectionRect.xMax;
             selectionRect.width = iconSize;
@@ -35,7 +35,15 @@ namespace Chisel.Editors
             selectionRect.y--;
             GUI.Label(selectionRect, icon);
         }
-        
+
+        static GUIContent sWarningContent;
+
+        [InitializeOnLoadMethod]
+        static void Initialize()
+        {
+            sWarningContent = ChiselEditorResources.GetIconContent("warning")[0];
+        }
+
         static void RenderHierarchyItem(int instanceID, ChiselNode node, Rect selectionRect)
         {
             if (!ChiselSceneGUIStyle.isInitialized)
@@ -52,9 +60,33 @@ namespace Chisel.Editors
                 }
             }
 
-            var icon = ChiselNodeDetailsManager.GetHierarchyIcon(node);
-            if (icon != null)
-                RenderIcon(selectionRect, icon);
+            var active = node.isActiveAndEnabled;
+            if (active)
+            {
+                var icon = ChiselNodeDetailsManager.GetHierarchyIcon(node, out bool hasValidState);
+                if (icon != null)
+                    RenderIcon(selectionRect, icon);
+
+                if (!hasValidState)
+                {
+                    var warningIcon = sWarningContent;
+                    if (warningIcon != null)
+                        RenderIcon(selectionRect, warningIcon);
+                }
+            }
+            else
+            {
+                var icon = ChiselNodeDetailsManager.GetHierarchyIcon(node);
+                if (icon != null)
+                {
+                    var prevColor = GUI.color;
+                    var newColor = prevColor;
+                    newColor.a *= 0.25f;
+                    GUI.color = newColor;
+                    RenderIcon(selectionRect, icon);
+                    GUI.color = prevColor;
+                }
+            }
         }
 
         internal static void OnHierarchyWindowItemGUI(int instanceID, ChiselNode node, Rect selectionRect)

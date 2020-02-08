@@ -35,24 +35,42 @@ namespace Chisel.Editors
 
         public static IChiselNodeDetails GetNodeDetails(ChiselNode node)
         {
-            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails someInterface))
-                return someInterface;
+            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails nodeDetails))
+                return nodeDetails;
             return generatorDefaultDetails;
         }
 
         public static IChiselNodeDetails GetNodeDetails(Type type)
         {
-            if (nodeDetailsLookup.TryGetValue(type, out IChiselNodeDetails someInterface))
-                return someInterface;
+            if (nodeDetailsLookup.TryGetValue(type, out IChiselNodeDetails nodeDetails))
+                return nodeDetails;
             return generatorDefaultDetails;
         }
-
-
         public static GUIContent GetHierarchyIcon(ChiselNode node)
         {
-            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails someInterface))
-                return someInterface.GetHierarchyIconForGenericNode(node);
+            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails nodeDetails))
+            {
+                return nodeDetails.GetHierarchyIconForGenericNode(node);
+            }
             return generatorDefaultDetails.GetHierarchyIconForGenericNode(node);
+        }
+
+        public static GUIContent GetHierarchyIcon(ChiselNode node, out bool hasValidState)
+        {
+            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails nodeDetails))
+            {
+                hasValidState = nodeDetails.HasValidState(node);
+                return nodeDetails.GetHierarchyIconForGenericNode(node);
+            }
+            hasValidState = generatorDefaultDetails.HasValidState(node);
+            return generatorDefaultDetails.GetHierarchyIconForGenericNode(node);
+        }
+
+        public static bool HasValidState(ChiselNode node)
+        {
+            if (nodeDetailsLookup.TryGetValue(node.GetType(), out IChiselNodeDetails nodeDetails))
+                return nodeDetails.HasValidState(node);
+            return generatorDefaultDetails.HasValidState(node);
         }
     }
 }

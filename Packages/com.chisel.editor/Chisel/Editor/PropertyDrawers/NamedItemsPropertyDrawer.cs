@@ -18,8 +18,22 @@ namespace Chisel.Editors
 
         static GUIContent tempPropertyContent = new GUIContent();
 
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+                return 0;
+            return base.GetPropertyHeight(property, label);
+        }
+
         public override void OnGUI(Rect position, SerializedProperty surfacesArrayProperty, GUIContent label)
         {
+            if (ChiselNodeEditorBase.InSceneSettingsContext)
+            {
+                EditorGUI.BeginProperty(position, label, surfacesArrayProperty);
+                EditorGUI.EndProperty();
+                return;
+            }
+
             NamedItemsAttribute namedItems = attribute as NamedItemsAttribute;
 
             if (surfacesArrayProperty.type != nameof(ChiselSurfaceDefinition))
