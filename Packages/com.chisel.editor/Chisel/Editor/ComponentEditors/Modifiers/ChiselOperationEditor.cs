@@ -27,6 +27,8 @@ namespace Chisel.Editors
     [CanEditMultipleObjects]
     public sealed class ChiselOperationEditor : ChiselNodeEditor<ChiselOperation>
     {
+        const string kOperationHasNoChildren = "This operation has no children and will not do anything";
+
         [MenuItem("GameObject/Chisel/Create/" + ChiselOperation.kNodeTypeName, false, 0)]
         static void CreateAsGameObject(MenuCommand menuCommand) { CreateAsGameObjectMenuCommand(menuCommand, ChiselOperation.kNodeTypeName); }
 
@@ -96,6 +98,21 @@ namespace Chisel.Editors
                             ChiselNodeHierarchyManager.UpdateAvailability(operation);
                         }
                     }
+                }
+                bool hasNoChildren = false;
+                foreach (var target in serializedObject.targetObjects)
+                {
+                    var operation = target as ChiselOperation;
+                    if (!operation)
+                        continue;
+                    if (operation.transform.childCount == 0)
+                    {
+                        hasNoChildren = true;
+                    }
+                }
+                if (hasNoChildren)
+                {
+                    EditorGUILayout.HelpBox(kOperationHasNoChildren, MessageType.Warning, true);
                 }
             }
             catch (ExitGUIException) { }

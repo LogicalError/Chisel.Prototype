@@ -39,6 +39,7 @@ namespace Chisel.Editors
 
         protected override void OnInspector()
         {
+            base.OnInspector();
             if (!HasValidState())
             {
                 bool zeroSized = false;
@@ -57,7 +58,6 @@ namespace Chisel.Editors
                     EditorGUILayout.HelpBox(kDimensionCannotBeZero, MessageType.Warning, true);
                 }
             }
-            base.OnInspector();
         }
     }
 }

@@ -205,7 +205,10 @@ namespace Chisel.Components
         // Will show a warning icon in hierarchy when generator has a problem (do not make this method slow, it is called a lot!)
         public override bool HasValidState()
         {
-            return Node.Valid;
+            if (!Node.Valid)
+                return false;
+            // A model makes no sense without any children
+            return (transform.childCount > 0);
         }
 
         public override void SetDirty() { if (Node.Valid) Node.SetDirty(); }

@@ -28,6 +28,8 @@ namespace Chisel.Editors
     [CanEditMultipleObjects]
     public sealed class ChiselModelEditor : ChiselNodeEditor<ChiselModel>
     {
+        const string kModelHasNoChildren = "This model has no children and will not do anything, add some generators or brushes.";
+
         [MenuItem("GameObject/Chisel/Create/" + ChiselModel.kNodeTypeName, false, 0)]
         static void CreateAsGameObject(MenuCommand menuCommand) { CreateAsGameObjectMenuCommand(menuCommand, ChiselModel.kNodeTypeName); }
 
@@ -904,6 +906,22 @@ namespace Chisel.Editors
                     EditorGUI.indentLevel--;
                 }
                 EditorGUI.EndDisabledGroup();
+
+                bool hasNoChildren = false;
+                foreach (var target in serializedObject.targetObjects)
+                {
+                    var operation = target as ChiselModel;
+                    if (!operation)
+                        continue;
+                    if (operation.transform.childCount == 0)
+                    {
+                        hasNoChildren = true;
+                    }
+                }
+                if (hasNoChildren)
+                {
+                    EditorGUILayout.HelpBox(kModelHasNoChildren, MessageType.Warning, true);
+                }
             }
             if (EditorGUI.EndChangeCheck())
             {
