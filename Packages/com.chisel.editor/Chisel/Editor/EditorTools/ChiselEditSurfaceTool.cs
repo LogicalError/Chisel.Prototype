@@ -17,23 +17,27 @@ namespace Chisel.Editors
     // TODO: hovering on surfaces in inspector should highlight in scene
 
     [EditorTool("Chisel " + kToolName + " Tool", typeof(ChiselNode))]
-    class ChiselSurfaceEditTool : ChiselEditToolBase
+    class ChiselEditSurfaceTool : ChiselEditToolBase
     {
-        const string kToolName = "Surface Edit";
+        const string kToolName = "Edit Surface";
         public override string ToolName => kToolName;
 
-        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselSurfaceEditTool); }
+        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselEditSurfaceTool); }
 
         #region Keyboard Shortcut
         const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
         [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToSurfaceEditMode, displayName = kEditModeShotcutName)]
-        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselSurfaceEditTool>(); }
+        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselEditSurfaceTool>(); }
         #endregion
 
         public override void OnActivate()
         {
             ChiselOutlineRenderer.VisualizationMode = VisualizationMode.Surface;
-        } 
+        }
+
+        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        {
+        }
 
         static readonly int kSurfaceEditModeHash		= "SurfaceEditMode".GetHashCode();
         static readonly int kSurfaceDragSelectionHash	= "SurfaceDragSelection".GetHashCode();
@@ -45,13 +49,9 @@ namespace Chisel.Editors
         static bool ToolIsDragging		{ get; set; }
         static bool MouseIsDown			{ get; set; }
 
-
-
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            ChiselOptionsOverlay.AdditionalSettings = null;
-            ChiselOptionsOverlay.Show();
-            ChiselGridOptionsOverlay.Show();
+            ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
 
             var defaultID = GUIUtility.GetControlID(kSurfaceEditModeHash, FocusType.Passive, dragArea);
             HandleUtility.AddDefaultControl(defaultID);

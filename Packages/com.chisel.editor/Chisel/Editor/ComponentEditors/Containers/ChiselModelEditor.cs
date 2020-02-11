@@ -237,6 +237,15 @@ namespace Chisel.Editors
                 if (!modelTarget.IsInitialized)
                     modelTarget.OnInitialize();
             }
+
+            ChiselEditGeneratorTool.OnEditSettingsGUI = OnEditSettingsGUI;
+            ChiselEditGeneratorTool.CurrentEditorName = "Model";
+        }
+
+        internal void OnDisable()
+        {
+            ChiselEditGeneratorTool.OnEditSettingsGUI = null;
+            ChiselEditGeneratorTool.CurrentEditorName = null;
         }
 
 
@@ -753,7 +762,7 @@ namespace Chisel.Editors
 
         void RenderRenderingLayer()
         {
-            if (target == null || Tools.current != Tool.Custom || !ChiselShapeEditTool.IsActive())
+            if (target == null || Tools.current != Tool.Custom || !ChiselEditGeneratorTool.IsActive())
                 return;
 
             // TODO: why are we doing this again?
@@ -841,14 +850,18 @@ namespace Chisel.Editors
             }
             return false;
         }
+        
 
-        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        protected override void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView)
         {
+            if (Tools.current != Tool.Custom)
+                return;
+
+
         }
 
         public override void OnInspectorGUI()
         {
-            ChiselOptionsOverlay.AdditionalSettings = OnSettingsGUI;
             CheckForTransformationChanges(serializedObject);
 
             if (IsDefaultModel())

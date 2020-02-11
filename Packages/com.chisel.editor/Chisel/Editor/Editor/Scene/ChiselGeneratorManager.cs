@@ -143,37 +143,5 @@ namespace Chisel.Editors
                 }
             }
         }
-
-        public void OnSelectionChanged()
-        {
-            // Make sure we're currently in a non-generator, otherwise this makes no sense
-            // We might actually be currently restoring a selection
-            if (!(GeneratorMode is ChiselGeneratorMode))
-                return;
-
-            var activeObject = Selection.activeObject;
-            // This event is fired when we select or deselect something.
-            // We only care if we select something
-            if (activeObject == null)
-                return;
-
-            // We just selected something in the editor, so we want to get rid of our 
-            // stored selection to avoid restoring an old selection for no reason later on.
-            //ClearStoredEditModeState();
-
-            var is_generator = activeObject is Components.ChiselGeneratorComponent;
-            if (!is_generator)
-            {
-                var gameObject = activeObject as GameObject;
-                if (gameObject != null)
-                    is_generator = gameObject.GetComponent<Components.ChiselGeneratorComponent>() != null;
-            }
-
-            if (is_generator)
-                EditorTools.SetActiveTool(typeof(ChiselShapeEditTool));
-            else
-                EditorTools.RestorePreviousPersistentTool();
-        }
-
     }
 }

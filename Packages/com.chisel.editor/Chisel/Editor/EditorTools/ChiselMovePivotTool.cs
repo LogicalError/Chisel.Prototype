@@ -12,17 +12,17 @@ using UnityEditor.EditorTools;
 namespace Chisel.Editors
 {
     [EditorTool("Chisel " + kToolName + " Tool", typeof(ChiselNode))]
-    class ChiselPivotEditTool : ChiselEditToolBase
+    class ChiselMovePivotTool : ChiselEditToolBase
     {
-        const string kToolName = "Pivot";
+        const string kToolName = "Move Pivot";
         public override string ToolName => kToolName;
 
-        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselPivotEditTool); }
+        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselMovePivotTool); }
 
         #region Keyboard Shortcut
         const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
         [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToPivotEditMode, displayName = kEditModeShotcutName)]
-        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselPivotEditTool>(); }
+        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselMovePivotTool>(); }
         #endregion
 
         public override void OnActivate()
@@ -142,11 +142,13 @@ namespace Chisel.Editors
         }
         #endregion
 
+        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        {
+        }
+
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            ChiselOptionsOverlay.AdditionalSettings = null;
-            ChiselOptionsOverlay.Show();
-            ChiselGridOptionsOverlay.Show();
+            ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
 
             var position = Tools.handlePosition;
             var rotation = Tools.handleRotation;

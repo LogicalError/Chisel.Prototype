@@ -47,7 +47,7 @@ namespace Chisel.Editors
             editModes[editMode.ToolName] = editMode;
         }
 
-        static float kButtonSize = 32;
+        const float kButtonSize = 32;
         static GUILayoutOption[] buttonOptions = new[]
         {
             GUILayout.Width(kButtonSize),
@@ -82,20 +82,14 @@ namespace Chisel.Editors
             }
         }
 
-        static void DisplayControls(System.Object target, SceneView sceneView)
+        static void DisplayControls(UnityEngine.Object target, SceneView sceneView)
         {
             if (!sceneView)
                 return;
 
             EditorGUI.BeginChangeCheck();
             {
-                if (AdditionalSettings != null)
-                {
-                    GUILayout.BeginVertical(ChiselOverlay.kMinWidthLayout);
-                    AdditionalSettings(target, sceneView);
-                    GUILayout.EndVertical();
-                    GUILayout.Space(10);
-                }
+                AdditionalSettings?.Invoke(target, sceneView);
 
                 GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
 
@@ -113,6 +107,11 @@ namespace Chisel.Editors
             }
             if (EditorGUI.EndChangeCheck())
                 ChiselEditorSettings.Save();
+        }
+
+        public static void SetTitle(string title)
+        {
+            kOverlayTitle.text = title;
         }
 
         public static void Show()

@@ -41,19 +41,29 @@ namespace Chisel.Editors
                 passThroughProp = null;
                 return;
             }
+
             // Fetch the objects from the GameObject script to display in the inspector
             operationProp   = serializedObject.FindProperty(ChiselOperation.kOperationFieldName);
             passThroughProp = serializedObject.FindProperty(ChiselOperation.kPassThroughFieldName);
+
+            ChiselEditGeneratorTool.OnEditSettingsGUI = OnEditSettingsGUI;
+            ChiselEditGeneratorTool.CurrentEditorName = "Operation";
         }
 
         internal void OnDisable()
         {
             operationProp = null;
             passThroughProp = null;
+            ChiselEditGeneratorTool.OnEditSettingsGUI = null;
+            ChiselEditGeneratorTool.CurrentEditorName = null;
         }
-
-        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        
+        protected override void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView)
         {
+            if (Tools.current != Tool.Custom)
+                return;
+
+            ShowInspectorHeader(operationProp);
         }
 
         public override void OnInspectorGUI()

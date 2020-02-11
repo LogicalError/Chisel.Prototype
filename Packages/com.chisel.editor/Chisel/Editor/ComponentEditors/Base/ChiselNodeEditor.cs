@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System;
@@ -373,14 +374,77 @@ namespace Chisel.Editors
             EditorGUILayout.EndHorizontal();
         }
 
-        protected abstract void OnSettingsGUI(System.Object target, SceneView sceneView);
+        public void ShowInspectorHeader(SerializedProperty operationProp)
+        {
+            GUILayout.BeginHorizontal();
+            ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
+            if (typeof(T) != typeof(ChiselBrush)) ConvertIntoBrushesButton(serializedObject);
+            GUILayout.EndHorizontal();
+        }
+
+        protected abstract void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView);
 
         public override void OnInspectorGUI()
         {
-            if (Tools.current != Tool.Custom || EditorTools.activeToolType == typeof(ChiselShapeEditTool))
-                ChiselOptionsOverlay.AdditionalSettings = OnSettingsGUI;
             CheckForTransformationChanges(serializedObject);
             ShowDefaultModelMessage(serializedObject.targetObjects);
+        }
+
+        static void OnMoveTool()
+        {
+            var position = Tools.handlePosition;
+            var rotation = Tools.handleRotation;
+
+            EditorGUI.BeginChangeCheck();
+            // TODO: make this work with bounds!
+            var newPosition = UnitySceneExtensions.SceneHandles.PositionHandle(position, rotation);
+            if (EditorGUI.EndChangeCheck())
+            {
+                var delta = newPosition - position;
+                var transforms = Selection.transforms;
+                if (transforms != null && transforms.Length > 0)
+                {				
+                    MoveTransformsTo(transforms, delta);
+                }
+            }
+        }
+
+        protected void OnDefaultSceneTools()
+        {
+            // TODO: somehow make snapped controls work with *any* transform
+            switch (Tools.current)
+            {
+                case Tool.Move:         Tools.hidden = true; OnMoveTool(); break;
+                case Tool.Rotate:       Tools.hidden = false; break;// TODO: implement 
+                case Tool.Scale:        Tools.hidden = false; break;// TODO: implement
+                case Tool.Rect:         Tools.hidden = false; break;// TODO: implement
+                case Tool.Transform:    Tools.hidden = false; break;// TODO: implement
+                default:
+                {
+                    Tools.hidden = false;
+                    break;
+                }
+            }
+        }
+
+
+        static void MoveTransformsTo(Transform[] transforms, Vector3 delta)
+        {
+            Undo.RecordObjects(transforms, "Move Transforms");
+            foreach (var transform in transforms)
+                transform.position += delta;
+        }
+
+        public virtual void OnSceneGUI()
+        {
+            if (!target)
+                return;
+
+            if (Tools.current != Tool.Custom || !ChiselEditGeneratorTool.IsActive())
+            {
+                OnDefaultSceneTools();
+                return;
+            }
         }
     }
 
@@ -507,11 +571,16 @@ namespace Chisel.Editors
         protected virtual void ResetInspector() { ResetDefaultInspector(); } 
         protected virtual void InitInspector() { InitDefaultInspector(); }
 
-        protected override void OnSettingsGUI(System.Object target, SceneView sceneView)
+        protected override void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView)
         {
-            ShowInspectorHeader();
+            if (Tools.current != Tool.Custom)
+                return;
+
+            // TODO: figure out how to make this work with multiple (different) editors when selecting a combination of nodes
+            ShowInspectorHeader(operationProp);
             OnDefaultSettingsGUI(target, sceneView);
         }
+
         protected virtual void OnInspector() { OnDefaultInspector(); }
 
         protected virtual void OnTargetModifiedInInspector() { }
@@ -534,6 +603,8 @@ namespace Chisel.Editors
             UnityEditor.Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             PreviewTextureManager.CleanUp();
             Reset();
+            ChiselEditGeneratorTool.OnEditSettingsGUI = null;
+            ChiselEditGeneratorTool.CurrentEditorName = null;
             Tools.hidden = false;
         }
 
@@ -545,6 +616,8 @@ namespace Chisel.Editors
                 return;
             }
 
+            ChiselEditGeneratorTool.OnEditSettingsGUI = OnEditSettingsGUI;
+            ChiselEditGeneratorTool.CurrentEditorName = (target as T).NodeTypeName;
             operationProp = serializedObject.FindProperty(ChiselGeneratorComponent.kOperationFieldName);
             UpdateSelection();
 
@@ -612,14 +685,6 @@ namespace Chisel.Editors
                 knownTargets.Remove(removeTarget);
         }
 
-        public void ShowInspectorHeader()
-        {
-            GUILayout.BeginHorizontal();
-            ChiselOperationGUI.ShowOperationChoicesInternal(operationProp);
-            if (typeof(T) != typeof(ChiselBrush)) ConvertIntoBrushesButton(serializedObject);
-            GUILayout.EndHorizontal();
-        }
-
         public override void OnInspectorGUI()
         {
             if (!target)
@@ -633,7 +698,7 @@ namespace Chisel.Editors
             {
                 EditorGUI.BeginChangeCheck();
                 {
-                    ShowInspectorHeader();
+                    ShowInspectorHeader(operationProp);
                     OnInspector();
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -645,56 +710,12 @@ namespace Chisel.Editors
             catch (Exception ex) { Debug.LogException(ex); }
         }
 
-        void OnDefaultSceneTools()
-        {
-            // TODO: somehow make snapped controls work with *any* transform
-            switch (Tools.current)
-            {
-                case Tool.Move:         Tools.hidden = true; OnMoveTool(); break;
-                case Tool.Rotate:       Tools.hidden = false; break;// TODO: implement 
-                case Tool.Scale:        Tools.hidden = false; break;// TODO: implement
-                case Tool.Rect:         Tools.hidden = false; break;// TODO: implement
-                case Tool.Transform:    Tools.hidden = false; break;// TODO: implement
-                default:
-                {
-                    Tools.hidden = false;
-                    break;
-                }
-            }
-        }
-
-        static void OnMoveTool()
-        {
-            var position = Tools.handlePosition;
-            var rotation = Tools.handleRotation;
-
-            EditorGUI.BeginChangeCheck();
-            // TODO: make this work with bounds!
-            var newPosition = UnitySceneExtensions.SceneHandles.PositionHandle(position, rotation);
-            if (EditorGUI.EndChangeCheck())
-            {
-                var delta = newPosition - position;
-                var transforms = Selection.transforms;
-                if (transforms != null && transforms.Length > 0)
-                {				
-                    MoveTransformsTo(transforms, delta);
-                }
-            }
-        }
-
-        static void MoveTransformsTo(Transform[] transforms, Vector3 delta)
-        {
-            Undo.RecordObjects(transforms, "Move Transforms");
-            foreach (var transform in transforms)
-                transform.position += delta;
-        }
-
-        public void OnSceneGUI()
+        public override void OnSceneGUI()
         {
             if (!target)
                 return;
 
-            if (Tools.current != Tool.Custom || !ChiselShapeEditTool.IsActive())
+            if (Tools.current != Tool.Custom || !ChiselEditGeneratorTool.IsActive())
             {
                 OnDefaultSceneTools();
                 return;

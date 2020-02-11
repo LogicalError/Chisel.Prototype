@@ -26,21 +26,40 @@ namespace Chisel.Editors
                 text    = $"Chisel {ToolName} Tool",
                 tooltip = $"Chisel {ToolName} Tool"
             };
-            ChiselOptionsOverlay.Register(this);
+            ChiselOptionsOverlay.Register(this); 
         }
 
-        public virtual void OnSceneSettingsGUI()
-        {
+        public abstract void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView);
 
+
+        static bool haveNodeSelection = false;
+
+        public static void OnSelectionChanged()
+        {
+            haveNodeSelection = (Selection.GetFiltered<ChiselNode>(SelectionMode.Deep | SelectionMode.Editable).Length > 0);
+        }
+
+        public static void ShowDefaultOverlay()
+        {
+            if (!haveNodeSelection)
+                return;
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
         }
 
         public override void OnToolGUI(EditorWindow window)
-        { 
+        {
             var sceneView = window as SceneView;
             var dragArea = sceneView.position;
             dragArea.position = Vector2.zero;
             ChiselGeneratorManager.ActivateTool(this);
+
+            ChiselOptionsOverlay.AdditionalSettings = null;
+            ChiselOptionsOverlay.SetTitle(ToolName);
             OnSceneGUI(sceneView, dragArea);
+
+            ChiselOptionsOverlay.Show();
+            ChiselGridOptionsOverlay.Show();
         }
 
         public virtual void OnActivate() { }

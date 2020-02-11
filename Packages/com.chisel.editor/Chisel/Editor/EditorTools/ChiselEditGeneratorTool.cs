@@ -12,19 +12,28 @@ using UnityEngine;
 namespace Chisel.Editors
 {
     [EditorTool("Chisel " + kToolName + " Tool", typeof(ChiselNode))]
-    class ChiselShapeEditTool : ChiselEditToolBase
+    class ChiselEditGeneratorTool : ChiselEditToolBase
     {
-        const string kToolName = "Shape Edit";
+        const string kToolName = "Edit Generator";
         public override string ToolName => kToolName;
 
-        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselShapeEditTool); }
+        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselEditGeneratorTool); }
 
 
         #region Keyboard Shortcut
         const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
         [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToShapeEditMode, displayName = kEditModeShotcutName)]
-        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselShapeEditTool>(); }
+        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselEditGeneratorTool>(); }
         #endregion
+
+        public static ChiselOverlay.WindowFunction OnEditSettingsGUI;
+        public static string CurrentEditorName;
+
+        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        {
+            OnEditSettingsGUI?.Invoke(target, sceneView);
+        }
+
 
         public override void OnActivate()
         {
@@ -34,8 +43,11 @@ namespace Chisel.Editors
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
             // NOTE: Actual work is done by Editor classes
-            ChiselOptionsOverlay.Show();
-            ChiselGridOptionsOverlay.Show();
+            if (string.IsNullOrEmpty(CurrentEditorName))
+                ChiselOptionsOverlay.SetTitle("Edit");
+            else
+                ChiselOptionsOverlay.SetTitle($"Edit {CurrentEditorName}");
+            ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
         }
     }
 }

@@ -34,11 +34,19 @@ namespace Chisel.Editors
             ChiselGeneratorManager.GeneratorMode.OnDeactivate();
         }
 
+        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        {
+            ChiselGeneratorManager.GeneratorMode.OnSceneSettingsGUI(target, sceneView);
+        }
+
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            ChiselOptionsOverlay.Show();  
-            ChiselGridOptionsOverlay.Show();
-            ChiselGeneratorManager.GeneratorMode.OnSceneGUI(sceneView, dragArea);
+            var generatorMode = ChiselGeneratorManager.GeneratorMode;
+            if (generatorMode == null)
+                return;
+            ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
+            ChiselOptionsOverlay.SetTitle($"Create {generatorMode.ToolName}");
+            generatorMode.OnSceneGUI(sceneView, dragArea);
         }
     }
 }
