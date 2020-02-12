@@ -37,6 +37,13 @@ namespace Chisel.Editors
                 var instance = (ChiselGeneratorMode)Activator.CreateInstance(type); 
                 generatorModeList.Add(instance);
             }
+            generatorModeList.Sort(delegate (ChiselGeneratorMode x, ChiselGeneratorMode y)
+            {
+                int difference = x.Group.CompareTo(y.Group);
+                if (difference != 0)
+                    return difference;
+                return x.ToolName.CompareTo(y.ToolName);
+            });
             generatorModes  = generatorModeList.ToArray();
         }
 

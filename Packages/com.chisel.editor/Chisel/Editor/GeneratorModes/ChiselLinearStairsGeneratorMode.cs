@@ -14,6 +14,7 @@ namespace Chisel.Editors
     {
         const string kToolName = ChiselLinearStairs.kNodeTypeName;
         public override string ToolName => kToolName;
+        public override string Group => "Stairs";
 
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;

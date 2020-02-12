@@ -14,6 +14,7 @@ namespace Chisel.Editors
     public abstract class ChiselGeneratorMode
     {
         public abstract string  ToolName        { get; }
+        public virtual string   Group           { get; }
 
         public GUIContent       Content         { get { return ChiselEditorResources.GetIconContent(ToolName, ToolName)[0]; } }
 

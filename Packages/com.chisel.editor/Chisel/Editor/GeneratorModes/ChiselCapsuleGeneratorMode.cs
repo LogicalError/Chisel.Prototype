@@ -15,6 +15,7 @@ namespace Chisel.Editors
     {
         const string kToolName = ChiselCapsule.kNodeTypeName;
         public override string ToolName => kToolName;
+        public override string Group => "Primitives";
 
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;

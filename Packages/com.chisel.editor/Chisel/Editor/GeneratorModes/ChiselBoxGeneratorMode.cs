@@ -13,7 +13,8 @@ namespace Chisel.Editors
     public sealed class ChiselBoxGeneratorMode : ChiselGeneratorMode
     {
         const string kToolName = ChiselBox.kNodeTypeName;
-        public override string ToolName => kToolName;
+        public override string  ToolName => kToolName;
+        public override string  Group => "Primitives";
 
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + kToolName;

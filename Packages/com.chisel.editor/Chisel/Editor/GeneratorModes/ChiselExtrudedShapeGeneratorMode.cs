@@ -14,6 +14,7 @@ namespace Chisel.Editors
     {
         const string kToolName = "Free Draw";
         public override string ToolName => kToolName;
+        public override string Group => "Freeform";
 
         #region Keyboard Shortcut
         const string kToolShotcutName = ChiselKeyboardDefaults.ShortCutCreateBase + "Free Drawn Shape";
