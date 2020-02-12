@@ -78,9 +78,10 @@ namespace Chisel.Editors
         }
 
         // TODO: add a AssetPostProcessor to detect if images changed/added/removed and remove those from the lookup
-        static Dictionary<string, Texture2D>    imagesLookup        = new Dictionary<string, Texture2D>();
-        static Dictionary<string, Texture2D[]>  iconImagesLookup    = new Dictionary<string, Texture2D[]>();
-        static Dictionary<int, GUIContent[]>    iconContentLookup   = new Dictionary<int, GUIContent[]>();
+        static Dictionary<string, Texture2D>    imagesLookup                = new Dictionary<string, Texture2D>();
+        static Dictionary<string, Texture2D[]>  iconImagesLookup            = new Dictionary<string, Texture2D[]>();
+        static Dictionary<int, GUIContent[]>    iconContentLookup           = new Dictionary<int, GUIContent[]>();
+        static Dictionary<int, GUIContent[]>    iconContentWithNameLookup   = new Dictionary<int, GUIContent[]>();
 
         public static Texture2D LoadImage(string name)
         {
@@ -98,6 +99,7 @@ namespace Chisel.Editors
         public static Texture2D LoadIconImage(string name, bool active)
         {
             Texture2D result = null;
+            name = name.ToLowerInvariant().Replace(' ', '_');  
             if (isProSkin)
             {
                 if (active        ) result = LoadImage($@"{kIconPath}{kDarkIconID}{name}{kActiveIconID}");
@@ -109,7 +111,7 @@ namespace Chisel.Editors
                 if (result == null) result = LoadImage($@"{kIconPath}{name}");
             }
             return result;
-        }
+        } 
 
         public static Texture2D[] LoadIconImages(string name)
         {
@@ -146,8 +148,28 @@ namespace Chisel.Editors
             return contents;
         }
 
+        public static GUIContent[] GetIconContentWithName(string name, string tooltip = "")
+        {
+            GUIContent[] contents;
+            var id = (name.GetHashCode() * 33) + tooltip.GetHashCode();
+            if (iconContentWithNameLookup.TryGetValue(id, out contents))
+                return contents;
+
+            if (tooltip == null)
+                tooltip = string.Empty;
+
+            var images = LoadIconImages(name);
+            if (images == null)
+                contents = new GUIContent[] { new GUIContent(name, tooltip), new GUIContent(name, tooltip) };
+            else
+                contents = new GUIContent[] { new GUIContent(name, images[0], tooltip), new GUIContent(name, images[1], tooltip) };
+
+            iconContentWithNameLookup[id] = contents;
+            return contents;
+        }
+
         [UnityEditor.Callbacks.DidReloadScripts]
-        public static void ClearCache() { imagesLookup.Clear(); iconImagesLookup.Clear(); iconContentLookup.Clear(); }
+        public static void ClearCache() { imagesLookup.Clear(); iconImagesLookup.Clear(); iconContentLookup.Clear(); iconContentWithNameLookup.Clear(); }
 
         
         #region Editor Resource Paths

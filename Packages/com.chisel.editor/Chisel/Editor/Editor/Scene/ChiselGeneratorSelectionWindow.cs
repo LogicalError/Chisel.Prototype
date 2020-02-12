@@ -12,7 +12,7 @@ namespace Chisel.Editors
 {
     public class ChiselGeneratorSelectionWindow : EditorWindow
     {
-        const float kSingleLineHeight   = 20f;
+        const float kSingleLineHeight   = 32f;
         const float kSingleSpacing      = 0.0f;
 
 
@@ -54,7 +54,7 @@ namespace Chisel.Editors
 
         static bool Toggle(Rect togglePosition, ChiselGeneratorManager.ChiselEditModeItem generator, GUIStyle style, bool isActive)
         {
-            var content     = ChiselEditorResources.GetIconContent(generator.instance.ToolName, generator.instance.ToolName);
+            var content     = ChiselEditorResources.GetIconContentWithName(generator.instance.ToolName, generator.instance.ToolName);
             var selected    = ChiselGeneratorManager.GeneratorMode == generator.instance;
             var prevBackgroundColor = GUI.backgroundColor;
             if (selected && !isActive)
@@ -62,13 +62,13 @@ namespace Chisel.Editors
                 var color = Color.white;
                 color.a = 0.25f;
                 GUI.backgroundColor = color;
-            }
+            } 
             var result = GUI.Toggle(togglePosition, selected, content[0], style);
             GUI.backgroundColor = prevBackgroundColor;
             return result;
         }
 
-        static void GeneratorButton(ChiselGeneratorManager.ChiselEditModeItem generator, Rect togglePosition, GUIStyle style, bool isActive)
+        static void NamedGeneratorButton(ChiselGeneratorManager.ChiselEditModeItem generator, Rect togglePosition, GUIStyle style, bool isActive)
         {
             EditorGUI.BeginChangeCheck();
             var value   = Toggle(togglePosition, generator, style, isActive);
@@ -83,20 +83,98 @@ namespace Chisel.Editors
             }
         }
 
+
+        static bool Toggle(ChiselGeneratorManager.ChiselEditModeItem generator, GUIStyle style, bool isActive)
+        {
+            var content = ChiselEditorResources.GetIconContent(generator.instance.ToolName, generator.instance.ToolName);
+            var selected = ChiselGeneratorManager.GeneratorMode == generator.instance;
+            var prevBackgroundColor = GUI.backgroundColor;
+            if (selected && !isActive)
+            {
+                var color = Color.white;
+                color.a = 0.25f;
+                GUI.backgroundColor = color;
+            }
+            var result = GUILayout.Toggle(selected, content[0], style);
+            GUI.backgroundColor = prevBackgroundColor;
+            return result;
+        }
+
+        static void GeneratorButton(ChiselGeneratorManager.ChiselEditModeItem generator, GUIStyle style, bool isActive)
+        {
+            EditorGUI.BeginChangeCheck();
+            var value = Toggle(generator, style, isActive);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ChiselCreateTool.ActivateTool();
+                Selection.activeObject = null;
+                ChiselGeneratorManager.GeneratorMode = generator.instance;
+                if (value)
+                    ChiselEditorSettings.Save();
+                SceneView.RepaintAll();
+            }
+        }
+
+        class Styles
+        {
+            public GUIStyle namedToggleStyle;
+            public GUIStyle toggleStyle;
+        }
+
+        static Styles styles = null;
+        static void InitStyles()
+        {
+            if (styles == null)
+            {
+                styles = new Styles();
+                styles.namedToggleStyle = new GUIStyle(GUI.skin.button);
+                styles.namedToggleStyle.alignment = TextAnchor.MiddleLeft;
+                styles.namedToggleStyle.fixedHeight = kSingleLineHeight - 2;
+
+                styles.toggleStyle = new GUIStyle(styles.namedToggleStyle);
+                styles.toggleStyle.fixedHeight = kSingleLineHeight;
+                styles.toggleStyle.fixedWidth = styles.toggleStyle.fixedHeight;
+                styles.toggleStyle.padding = new RectOffset(2, 2, 2, 2);
+            }
+        }
+
         public void OnGUI()
         {
+            InitStyles();
             // TODO: have scrollbar when window is too small
             // TODO: if window is wider than higher, place everything horizontal vs vertical
             var generatorModes  = ChiselGeneratorManager.generatorModes;
             var isActive        = ChiselCreateTool.IsActive();
 
             var togglePosition = new Rect(0,0, ChiselEditorUtility.ContextWidth, kSingleLineHeight);
-            var style = GUI.skin.button;
+            var style = styles.namedToggleStyle;
             for (int i = 0; i < generatorModes.Length; i++)
             {
-                GeneratorButton(generatorModes[i], togglePosition, style, isActive);
+                NamedGeneratorButton(generatorModes[i], togglePosition, style, isActive);
                 togglePosition.y += kSingleLineHeight + kSingleSpacing;
             }
+        }
+
+        public static void RenderCreationTools()
+        {
+            InitStyles();
+
+            var generatorModes = ChiselGeneratorManager.generatorModes;
+            var isActive = ChiselCreateTool.IsActive();
+
+            var style = styles.toggleStyle;
+
+            GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
+            for (int i = 0; i < generatorModes.Length; i++)
+            {
+                if (i >0 && (i%7) == 0)
+                {
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
+                }
+                GeneratorButton(generatorModes[i], style, isActive);
+            }
+            GUILayout.EndHorizontal();
         }
     }
 }

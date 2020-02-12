@@ -99,13 +99,13 @@ namespace Chisel.Editors
             get
             {
                 var currentGenerator = Instance.data.currentGenerator;
-
+                if (generatorModes == null)
+                    InitializeEditModes();
                 for (int j = 0; j < generatorModes.Length; j++)
                 {
                     if (generatorModes[j].instance == currentGenerator)
                         return (j + 1);
                 }
-
                 return 0;
             }
             set

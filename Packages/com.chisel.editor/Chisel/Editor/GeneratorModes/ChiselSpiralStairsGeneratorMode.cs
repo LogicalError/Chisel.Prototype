@@ -51,7 +51,7 @@ namespace Chisel.Editors
             {
                 case BoxExtrusionState.Create:
                 {
-                    spiralStairs = ChiselComponentFactory.Create<ChiselSpiralStairs>("Spiral Stairs",
+                    spiralStairs = ChiselComponentFactory.Create<ChiselSpiralStairs>(ChiselSpiralStairs.kNodeTypeName,
                                                                         ChiselModelManager.GetActiveModelOrCreate(modelBeneathCursor),
                                                                         transformation);
                     spiralStairs.definition.Reset();

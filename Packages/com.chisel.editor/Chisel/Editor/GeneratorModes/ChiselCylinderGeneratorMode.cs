@@ -61,7 +61,7 @@ namespace Chisel.Editors
             {
                 case BoxExtrusionState.Create:
                 {
-                    cylinder = ChiselComponentFactory.Create<ChiselCylinder>("Cylinder",
+                    cylinder = ChiselComponentFactory.Create<ChiselCylinder>(ChiselCylinder.kNodeTypeName,
                                                                 ChiselModelManager.GetActiveModelOrCreate(modelBeneathCursor),
                                                                 transformation);
                     cylinder.definition.Reset();

@@ -91,6 +91,8 @@ namespace Chisel.Editors
             {
                 AdditionalSettings?.Invoke(target, sceneView);
 
+                ChiselGeneratorSelectionWindow.RenderCreationTools();
+
                 GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
 
                 foreach (var editMode in editModes.Values)
