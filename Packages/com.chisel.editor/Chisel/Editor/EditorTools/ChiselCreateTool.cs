@@ -14,13 +14,22 @@ namespace Chisel.Editors
     [EditorTool("Chisel " + kToolName + " Tool")]
     class ChiselCreateTool : ChiselEditToolBase
     {
-        const string kToolName = "Create";
+        public const string kToolName = "Create";
         public override string ToolName => kToolName;
+
+        public override GUIContent Content
+        {
+            get 
+            {
+                return ChiselGeneratorManager.GeneratorMode.Content;
+            } 
+        }
+
         public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselCreateTool); }
         
         #region Keyboard Shortcut
-        const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
-        [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToCreateEditMode, displayName = kEditModeShotcutName)]
+        const string kEditModeShotcutName = kToolName + " Mode";
+        [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToCreateEditMode, displayName = kEditModeShotcutName)]
         public static void ActivateTool() { EditorTools.SetActiveTool<ChiselCreateTool>(); }
         #endregion
 
@@ -44,9 +53,12 @@ namespace Chisel.Editors
             var generatorMode = ChiselGeneratorManager.GeneratorMode;
             if (generatorMode == null)
                 return;
+
             ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
             ChiselOptionsOverlay.SetTitle($"Create {generatorMode.ToolName}");
-            generatorMode.OnSceneGUI(sceneView, dragArea);
+            generatorMode.ShowSceneGUI(sceneView, dragArea);
+
+            /// TODO: pressing escape when not in the middle of creation something, should cancel this edit mode instead
         }
     }
 }

@@ -37,19 +37,13 @@ namespace Chisel.Editors
         {
             // TODO: implement
             GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            EditorGUI.BeginChangeCheck();
-            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
-            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
-            GUILayout.EndHorizontal();
-            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            generateFromCenterXZ = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Generate from Center"), generateFromCenterXZ);
+            ChiselOperationGUI.ChooseGeneratorOperation(ref forceOperation);
             GUILayout.EndVertical();
         }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            base.OnSceneGUI(sceneView, dragArea);
-
             var flags = (generateFromCenterXZ ? BoxExtrusionFlags.GenerateFromCenterXZ : BoxExtrusionFlags.None);
 
             switch (BoxExtrusionHandle.Do(dragArea, out Bounds bounds, out float height, out ChiselModel modelBeneathCursor, out Matrix4x4 transformation, flags, Axis.Y))

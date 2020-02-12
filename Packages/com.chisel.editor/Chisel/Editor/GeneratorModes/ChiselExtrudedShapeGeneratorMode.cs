@@ -34,18 +34,12 @@ namespace Chisel.Editors
         {
             // TODO: implement
             GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            EditorGUI.BeginChangeCheck();
-            var result = ChiselOperationGUI.ShowOperationChoicesInternal(forceOperation);
-            if (EditorGUI.EndChangeCheck()) { forceOperation = result; }
-            GUILayout.EndHorizontal();
+            ChiselOperationGUI.ChooseGeneratorOperation(ref forceOperation);
             GUILayout.EndVertical();
         }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            base.OnSceneGUI(sceneView, dragArea);
-
             // TODO: handle snapping against own points
             // TODO: handle ability to 'commit' last point
             switch (ShapeExtrusionHandle.Do(dragArea, out Curve2D shape, out float height, out ChiselModel modelBeneathCursor, out Matrix4x4 transformation, Axis.Y))

@@ -72,15 +72,15 @@ namespace Chisel.Editors
                 return;
 
             EditorGUI.BeginChangeCheck();
-            var result = ShowOperationChoicesInternal(operationProp.hasMultipleDifferentValues ? (CSGOperationType?)null : (CSGOperationType)operationProp.enumValueIndex);
-            if (EditorGUI.EndChangeCheck())
+            var result = ShowOperationChoicesInternal(operationProp.hasMultipleDifferentValues ? (CSGOperationType?)null : (CSGOperationType)operationProp.enumValueIndex, false);
+            if (EditorGUI.EndChangeCheck() && result.HasValue)
             {
-                operationProp.enumValueIndex = (int)result;
+                operationProp.enumValueIndex = (int)result.Value;
             }
         }
 
         // TODO: put somewhere else
-        public static CSGOperationType ShowOperationChoicesInternal(CSGOperationType? operation)
+        public static CSGOperationType? ShowOperationChoicesInternal(CSGOperationType? operation, bool showAuto = true)
         {
             if (styles == null)
                 styles = new Styles();
@@ -92,8 +92,15 @@ namespace Chisel.Editors
             using (new EditorGUIUtility.IconSizeScope(new Vector2(16, 16)))     // This ensures that the icons will be the same size on regular displays and HDPI displays
                                                                                 // Note that the loaded images are different sizes on different displays
             {
+                if (showAuto)
+                {
+                    const string kAutoIconName = "Automatic";
+                    var autoIcon = ChiselEditorResources.GetIconContent(kAutoIconName, $"Automatic boolean operation");
+                    if (Toggle(!operation.HasValue, autoIcon, styles.leftButton))
+                        return null;
+                }
                 var operationType = !operation.HasValue ? ((CSGOperationType)255) : (operation.Value);
-                if (Toggle((operationType == CSGOperationType.Additive), additiveIcon, styles.leftButton))
+                if (Toggle((operationType == CSGOperationType.Additive), additiveIcon, showAuto ? styles.midButton : styles.leftButton))
                     return CSGOperationType.Additive;
                 if (Toggle((operationType == CSGOperationType.Subtractive), subtractiveIcon, styles.midButton))
                     return CSGOperationType.Subtractive;
@@ -103,5 +110,14 @@ namespace Chisel.Editors
             }
         }
 
+        public static void ChooseGeneratorOperation(ref  CSGOperationType? operation)
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            GUILayout.Label("Boolean");
+            var result = ChiselOperationGUI.ShowOperationChoicesInternal(operation);
+            if (EditorGUI.EndChangeCheck()) { operation = result; }
+            GUILayout.EndHorizontal();
+        }
     }
 }

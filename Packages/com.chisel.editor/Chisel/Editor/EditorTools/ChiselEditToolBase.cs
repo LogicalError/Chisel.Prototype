@@ -15,18 +15,34 @@ namespace Chisel.Editors
 
         public abstract string ToolName { get; }
 
-        public override GUIContent toolbarIcon { get { return m_IconContent; } }
-        GUIContent m_IconContent;
+        public override GUIContent toolbarIcon { get { return cachedIconContent; } }
+        
+        GUIContent cachedIconContent = new GUIContent();
+        public virtual GUIContent Content
+        {
+            get 
+            {
+                return new GUIContent()
+                {
+                    image = m_ToolIcon,
+                    text = $"Chisel {ToolName} Tool",
+                    tooltip = $"Chisel {ToolName} Tool"
+                };
+            }
+        }
 
         public void OnEnable()
         {
-            m_IconContent = new GUIContent()
-            {
-                image   = m_ToolIcon,
-                text    = $"Chisel {ToolName} Tool",
-                tooltip = $"Chisel {ToolName} Tool"
-            };
+            UpdateIcon();
             ChiselOptionsOverlay.Register(this); 
+        }
+
+        public void UpdateIcon()
+        {
+            var newContent = Content;
+            cachedIconContent.image     = newContent.image;
+            cachedIconContent.text      = newContent.text;
+            cachedIconContent.tooltip   = newContent.tooltip;
         }
 
         public abstract void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView);
@@ -52,7 +68,6 @@ namespace Chisel.Editors
             var sceneView = window as SceneView;
             var dragArea = sceneView.position;
             dragArea.position = Vector2.zero;
-            ChiselGeneratorManager.ActivateTool(this);
 
             ChiselOptionsOverlay.AdditionalSettings = null;
             ChiselOptionsOverlay.SetTitle(ToolName);

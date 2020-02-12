@@ -40,6 +40,8 @@ namespace Chisel.Editors
         protected override void OnInspector()
         {
             base.OnInspector();
+
+            // TODO: create an "WarningMessage" method that returns a warningmessage when there's something to warn about, and use that in the inspector
             if (!HasValidState())
             {
                 bool zeroSized = false;

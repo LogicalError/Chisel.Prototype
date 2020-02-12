@@ -14,7 +14,7 @@ namespace Chisel.Editors
 {
     public class ChiselOverlay
     {
-        public const int kMinWidth = 240;
+        public const int kMinWidth = 244;
         public static readonly GUILayoutOption kMinWidthLayout = GUILayout.MinWidth(kMinWidth);
 
         public delegate void WindowFunction(UnityEngine.Object target, SceneView sceneView);

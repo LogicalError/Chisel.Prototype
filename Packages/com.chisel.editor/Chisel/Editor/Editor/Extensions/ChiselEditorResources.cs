@@ -140,7 +140,7 @@ namespace Chisel.Editors
 
             var images = LoadIconImages(name);
             if (images == null)
-                contents = new GUIContent[] { new GUIContent(tooltip), new GUIContent(tooltip) };
+                contents = new GUIContent[] { new GUIContent(name, tooltip), new GUIContent(name, tooltip) };
             else
                 contents = new GUIContent[] { new GUIContent(images[0], tooltip), new GUIContent(images[1], tooltip) };
 

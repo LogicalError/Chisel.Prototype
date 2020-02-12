@@ -25,8 +25,8 @@ namespace Chisel.Editors
         public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselEditSurfaceTool); }
 
         #region Keyboard Shortcut
-        const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
-        [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToSurfaceEditMode, displayName = kEditModeShotcutName)]
+        const string kEditModeShotcutName = kToolName + " Mode";
+        [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToSurfaceEditMode, displayName = kEditModeShotcutName)]
         public static void ActivateTool() { EditorTools.SetActiveTool<ChiselEditSurfaceTool>(); }
         #endregion
 

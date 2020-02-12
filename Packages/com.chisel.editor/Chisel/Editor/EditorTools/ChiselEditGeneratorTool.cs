@@ -21,12 +21,12 @@ namespace Chisel.Editors
 
 
         #region Keyboard Shortcut
-        const string kEditModeShotcutName = ChiselKeyboardDefaults.ShortCutEditModeBase + kToolName + " Mode";
-        [Shortcut(kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToShapeEditMode, displayName = kEditModeShotcutName)]
+        const string kEditModeShotcutName = kToolName + " Mode";
+        [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToShapeEditMode, displayName = kEditModeShotcutName)]
         public static void ActivateTool() { EditorTools.SetActiveTool<ChiselEditGeneratorTool>(); }
         #endregion
 
-        public static ChiselOverlay.WindowFunction OnEditSettingsGUI;
+        public static ChiselOverlay.WindowFunction OnEditSettingsGUI; 
         public static string CurrentEditorName;
 
         public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)

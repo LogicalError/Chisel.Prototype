@@ -35,14 +35,13 @@ namespace Chisel.Editors
         {
             // TODO: implement
             GUILayout.BeginVertical();
-            generateFromCenterXZ = GUILayout.Toggle(generateFromCenterXZ, EditorGUIUtility.TrTextContent("Generate from Center"));
+            generateFromCenterXZ = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Generate from Center"), generateFromCenterXZ);
+            ChiselOperationGUI.ChooseGeneratorOperation(ref forceOperation);
             GUILayout.EndVertical();
         }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            base.OnSceneGUI(sceneView, dragArea);
-            
             var flags = BoxExtrusionFlags.AlwaysFaceUp |
                         BoxExtrusionFlags.IsSymmetricalXZ |
                         (generateFromCenterXZ ? BoxExtrusionFlags.GenerateFromCenterXZ : BoxExtrusionFlags.None);

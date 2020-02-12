@@ -33,13 +33,13 @@ namespace Chisel.Editors
         public override void OnSceneSettingsGUI()
         {
             // TODO: implement
-            GUILayout.FlexibleSpace();
+            GUILayout.BeginVertical();
+            ChiselOperationGUI.ChooseGeneratorOperation(ref forceOperation);
+            GUILayout.EndVertical();
         }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
-            base.OnSceneGUI(sceneView, dragArea);
-
             var flags = BoxExtrusionFlags.AlwaysFaceUp | BoxExtrusionFlags.AlwaysFaceCameraXZ;
 
             switch (BoxExtrusionHandle.Do(dragArea, out Bounds bounds, out float height, out ChiselModel modelBeneathCursor, out Matrix4x4 transformation, flags, Axis.Y))

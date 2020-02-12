@@ -11,9 +11,17 @@ using UnitySceneExtensions;
 
 namespace Chisel.Editors
 {
-    public abstract class ChiselGeneratorMode : IChiselToolMode
+    public abstract class ChiselGeneratorMode
     {
         public abstract string  ToolName        { get; }
+
+        public GUIContent       Content         { get { return ChiselEditorResources.GetIconContent(ToolName, ToolName)[0]; } }
+
+        public bool             InToolBox 
+        {
+            get { return ChiselEditorSettings.IsInToolBox(ToolName, true); }
+            set { ChiselEditorSettings.SetInToolBox(ToolName, value);  }
+        }
 
         public virtual void     OnActivate()    { Reset(); }
 
@@ -45,7 +53,9 @@ namespace Chisel.Editors
         public void             OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView) { OnSceneSettingsGUI(); }
         public virtual void     OnSceneSettingsGUI() {}
 
-        public virtual void     OnSceneGUI(SceneView sceneView, Rect dragArea)
+        public abstract void OnSceneGUI(SceneView sceneView, Rect dragArea);
+
+        public virtual void ShowSceneGUI(SceneView sceneView, Rect dragArea)
         {
             var evt = Event.current;
             switch (evt.type)
@@ -80,6 +90,7 @@ namespace Chisel.Editors
                     break;
                 }
             }
+            OnSceneGUI(sceneView, dragArea);
         }
     }
 }

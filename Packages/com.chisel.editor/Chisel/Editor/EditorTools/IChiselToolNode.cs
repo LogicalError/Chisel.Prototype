@@ -13,6 +13,7 @@ namespace Chisel.Editors
     public interface IChiselToolMode
     {
         string ToolName { get; }
+        GUIContent Content { get; }
 
         void OnActivate();
         void OnDeactivate();

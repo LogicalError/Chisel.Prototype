@@ -15,7 +15,19 @@ namespace Chisel.Editors
         public static bool				AxisLockX		{ get { return Snapping.AxisLockX; } set { Snapping.AxisLockX = value; } }
         public static bool				AxisLockY		{ get { return Snapping.AxisLockY; } set { Snapping.AxisLockY = value; } }
         public static bool				AxisLockZ		{ get { return Snapping.AxisLockZ; } set { Snapping.AxisLockZ = value; } }
-        
+
+        internal static bool IsInToolBox(string toolName, bool defaultValue)
+        {
+            if (!inToolBoxSettings.TryGetValue(toolName, out bool found))
+                return defaultValue;
+            return found;
+        }
+
+        internal static void SetInToolBox(string toolName, bool value)
+        {
+            inToolBoxSettings[toolName] = value;
+        }
+
         public static bool				MoveSnapping	{ get { return BoundsSnapping || PivotSnapping; } }
         public static bool				BoundsSnapping  { get { return Snapping.BoundsSnappingEnabled; } set { Snapping.BoundsSnappingEnabled = value; } }
         public static bool				PivotSnapping   { get { return Snapping.PivotSnappingEnabled; } set { Snapping.PivotSnappingEnabled = value; } }
@@ -30,6 +42,7 @@ namespace Chisel.Editors
         public static bool				ScaleSnapping   { get { return Snapping.ScaleSnappingEnabled; } set { Snapping.ScaleSnappingEnabled = value; } }
         public static float				ScaleSnap		= 1.0f;
 
+        static Dictionary<string, bool> inToolBoxSettings = new System.Collections.Generic.Dictionary<string, bool>();
 
         public static void Load()
         {
@@ -50,6 +63,17 @@ namespace Chisel.Editors
             ScaleSnap		= EditorPrefs.GetFloat("ScaleSnap",			0.1f);
 
             ShowGrid 		= EditorPrefs.GetBool ("ShowGrid",			true);
+
+            var toolBoxValues = EditorPrefs.GetString("InToolBox").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            inToolBoxSettings.Clear();
+            if (toolBoxValues.Length > 0) 
+            {
+                foreach (var item in toolBoxValues)
+                {
+                    var itemState = item.Split('=');
+                    inToolBoxSettings[itemState[0]] = (itemState[1][0] == '1');
+                }
+            }
 
             ChiselGeneratorManager.GeneratorIndex = EditorPrefs.GetInt("GeneratorIndex", (int)1);
         }
@@ -73,6 +97,18 @@ namespace Chisel.Editors
             EditorPrefs.SetFloat("ScaleSnap",		ScaleSnap);
 
             EditorPrefs.SetBool("ShowGrid",   		ShowGrid);
+
+            var values = new StringBuilder();
+            foreach (var pair in inToolBoxSettings)
+            {
+                if (values.Length > 0)
+                    values.Append(',');
+                values.Append(pair.Key);
+                values.Append('=');
+                if (pair.Value) values.Append('1');
+                else values.Append('0');
+            }
+            EditorPrefs.SetString("InToolBox", values.ToString());
 
             EditorPrefs.SetInt("GeneratorIndex", ChiselGeneratorManager.GeneratorIndex);
         }
