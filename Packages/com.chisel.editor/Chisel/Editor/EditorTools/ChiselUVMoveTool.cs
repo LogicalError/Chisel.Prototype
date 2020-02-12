@@ -17,17 +17,17 @@ namespace Chisel.Editors
     // TODO: hovering on surfaces in inspector should highlight in scene
 
     [EditorTool("Chisel " + kToolName + " Tool", typeof(ChiselNode))]
-    class ChiselEditSurfaceTool : ChiselEditToolBase
+    class ChiselUVMoveTool : ChiselEditToolBase
     {
-        const string kToolName = "Edit Surface";
+        const string kToolName = "UV Drag";
         public override string ToolName => kToolName;
 
-        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselEditSurfaceTool); }
+        public static bool IsActive() { return EditorTools.activeToolType == typeof(ChiselUVMoveTool); }
 
         #region Keyboard Shortcut
         const string kEditModeShotcutName = kToolName + " Mode";
-        [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToSurfaceEditMode, displayName = kEditModeShotcutName)]
-        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselEditSurfaceTool>(); }
+        [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToUVMoveMode, displayName = kEditModeShotcutName)]
+        public static void ActivateTool() { EditorTools.SetActiveTool<ChiselUVMoveTool>(); }
         #endregion
 
         public override void OnActivate()
@@ -41,8 +41,6 @@ namespace Chisel.Editors
 
         static readonly int kSurfaceEditModeHash		= "SurfaceEditMode".GetHashCode();
         static readonly int kSurfaceDragSelectionHash	= "SurfaceDragSelection".GetHashCode();
-        static readonly int kSurfaceScaleHash			= "SurfaceScale".GetHashCode();
-        static readonly int kSurfaceRotateHash			= "SurfaceRotate".GetHashCode();
         static readonly int kSurfaceMoveHash			= "SurfaceMove".GetHashCode();
         
         static bool InEditCameraMode	{ get { return (Tools.viewTool == ViewTool.Pan || Tools.viewTool == ViewTool.None); } }
@@ -57,22 +55,15 @@ namespace Chisel.Editors
             HandleUtility.AddDefaultControl(defaultID);
 
             var selectionType	= ChiselRectSelectionManager.GetCurrentSelectionType();
-            var repaint			= SurfaceSelection(dragArea, selectionType);
-            var cursor			= MouseCursor.Arrow;
-
-            // Handle tool specific actions
-            switch (Tools.current)
-            {
-                case Tool.Move:		repaint = SurfaceMoveTool(selectionType,   dragArea) || repaint; cursor = MouseCursor.MoveArrow;   break;
-                case Tool.Rotate:	repaint = SurfaceRotateTool(selectionType, dragArea) || repaint; cursor = MouseCursor.RotateArrow; break;
-                case Tool.Scale:	repaint = SurfaceScaleTool(selectionType,  dragArea) || repaint; cursor = MouseCursor.ScaleArrow;  break;
-                //case Tool.Rect:	break;
-            }
+            var repaint			= SurfaceSelection(dragArea, selectionType);            
+            repaint = SurfaceMoveTool(selectionType,   dragArea) || repaint; 
             
             // Set cursor depending on selection type and/or active tool
-            { 
+            {
+                MouseCursor cursor;
                 switch (selectionType)
                 {
+                    default: cursor = MouseCursor.MoveArrow; break;
                     case SelectionType.Additive:    cursor = MouseCursor.ArrowPlus; break;
                     case SelectionType.Subtractive: cursor = MouseCursor.ArrowMinus; break;
                 }
@@ -875,159 +866,6 @@ namespace Chisel.Editors
         }
         #endregion
         
-        #region Surface Scale Tool
-        private static bool SurfaceScaleTool(SelectionType selectionType, Rect dragArea)
-        {
-            var id = GUIUtility.GetControlID(kSurfaceScaleHash, FocusType.Keyboard, dragArea);
-            if (!SurfaceToolBase(id, selectionType, dragArea))
-                return false;
-
-            bool needRepaint = false;            
-            switch (Event.current.GetTypeForControl(id))
-            {
-                // TODO: support scaling texture using keyboard
-                case EventType.Repaint:
-                {
-                    // TODO: show scaling of uv
-                    break;
-                }
-                case EventType.MouseDrag:
-                {
-                    if (!IsToolEnabled(id))
-                        break;
-                    
-                    StartToolDragging();
-
-                    var dragVector = worldDragDeltaVector;
-                    break;
-                }
-            }
-            return needRepaint;
-        }
-        #endregion
-
-        #region Surface Rotate Tool
-        static void RotateSurfacesInWorldSpace(Vector3 center, Vector3 normal, float rotateAngle)
-        {
-            // Get the rotation on that plane, around 'worldStartPosition'
-            var worldspaceRotation = MathExtensions.RotateAroundAxis(center, normal, rotateAngle);
-
-            Undo.RecordObjects(selectedBrushContainerAsset, "Rotate UV coordinates");
-            for (int i = 0; i < selectedSurfaceReferences.Length; i++)
-            {
-                var rotationInPlaneSpace = selectedSurfaceReferences[i].WorldSpaceToPlaneSpace(in worldspaceRotation);
-
-                // TODO: Finish this. If we have multiple surfaces selected, we want other non-aligned surfaces to move/rotate in a nice way
-                //		 last thing we want is that these surfaces are rotated in such a way that the uvs are rotated into infinity.
-                //		 ideally the rotation would change into a translation on 90 angles, think selecting all surfaces on a cylinder 
-                //	     and rotating the cylinder cap. You would want the sides to move with the rotation and not actually rotate themselves.
-                var rotateToPlane = Quaternion.FromToRotation(rotationInPlaneSpace.GetColumn(2), Vector3.forward);
-                var fixedRotation = Matrix4x4.TRS(Vector3.zero, rotateToPlane, Vector3.one) * rotationInPlaneSpace;
-
-                selectedSurfaceReferences[i].PlaneSpaceTransformUV(in fixedRotation, in selectedUVMatrices[i]);
-            }
-        }
-
-        static Vector3 fromWorldVector;
-        static bool		haveRotateStartAngle	= false;
-        static float	rotateAngle	            = 0;
-
-        const float		kMinRotateDiameter		= 1.0f;
-        private static bool SurfaceRotateTool(SelectionType selectionType, Rect dragArea)
-        {
-            var id = GUIUtility.GetControlID(kSurfaceRotateHash, FocusType.Keyboard, dragArea);
-            if (!SurfaceToolBase(id, selectionType, dragArea))
-                return false;
-            
-            bool needRepaint = false;            
-            if (!IsToolEnabled(id))
-            {
-                needRepaint = haveRotateStartAngle;
-                haveRotateStartAngle = false;
-                pointHasSnapped = false;
-            }
-            
-            switch (Event.current.GetTypeForControl(id))
-            {
-                // TODO: support rotating texture using keyboard?
-                case EventType.Repaint:
-                {
-                    if (haveRotateStartAngle)
-                    {
-                        var toWorldVector   = worldDragDeltaVector;
-                        var magnitude       = toWorldVector.magnitude;
-                        toWorldVector /= magnitude;
-
-                        // TODO: need a nicer visualization here, show delta rotation, angles etc.
-                        Handles.DrawWireDisc(worldStartPosition, worldProjectionPlane.normal, magnitude);
-                        if (haveRotateStartAngle)
-                        {
-                            var snappedToWorldVector = Quaternion.AngleAxis(rotateAngle, worldDragPlane.normal) * fromWorldVector;
-                            Handles.DrawDottedLine(worldStartPosition, worldStartPosition + (fromWorldVector      * magnitude), 4.0f);
-                            Handles.DrawDottedLine(worldStartPosition, worldStartPosition + (snappedToWorldVector * magnitude), 4.0f);
-                        } else
-                            Handles.DrawDottedLine(worldStartPosition, worldStartPosition + (toWorldVector * magnitude), 4.0f);
-                    }
-                    if (IsToolEnabled(id))
-                    {
-                        if (haveRotateStartAngle &&
-                            pointHasSnapped)
-                        {
-                            RenderIntersectionPoint(worldIntersection);
-                            RenderVertexBox(worldIntersection);
-                        }
-                    } 
-                    break;
-                }
-                case EventType.MouseDrag:
-                {
-                    if (!IsToolEnabled(id))
-                        break;
-                    
-                    if (StartToolDragging())
-                    {
-                        haveRotateStartAngle = false;
-                        pointHasSnapped = false;
-                    }
-
-                    var toWorldVector = worldDragDeltaVector;
-                    if (!haveRotateStartAngle)
-                    {
-                        var handleSize		= HandleUtility.GetHandleSize(worldStartPosition);	
-                        var minDiameterSqr	= handleSize * kMinRotateDiameter;
-                        // Only start rotating when we've moved the cursor far away enough from the center of rotation
-                        if (toWorldVector.sqrMagnitude > minDiameterSqr)
-                        {
-                            // Switch to rotation mode, we have a center and a start angle to compare with, 
-                            // from now on, when we move the mouse we change the rotation angle relative to this first angle.
-                            haveRotateStartAngle = true;
-                            pointHasSnapped = false;
-                            fromWorldVector = toWorldVector.normalized;
-                            rotateAngle = 0;
-
-                            // We override the snapping settings to only allow snapping against vertices, 
-                            // we do this only after we have our starting vector, so that when we rotate we're not constantly
-                            // snapping against the grid when we really just want to be able to snap against the current rotation step.
-                            // On the other hand, we do want to be able to snap against vertices ..
-                            toolSnapOverrides = UVSnapSettings.GeometryVertices; 
-                        }
-                    } else
-                    {
-                        // Get the angle between 'from' and 'to' on the plane we're dragging over
-                        rotateAngle = MathExtensions.SignedAngle(fromWorldVector, toWorldVector.normalized, worldDragPlane.normal);
-                        
-                        // If we snapped against something, ignore angle snapping
-                        if (!pointHasSnapped) rotateAngle = SnapAngle(rotateAngle);
-
-                        RotateSurfacesInWorldSpace(worldStartPosition, worldDragPlane.normal, -rotateAngle); // TODO: figure out why this is reversed
-                    }
-                    break;
-                }
-            }
-            return needRepaint;
-        }
-        #endregion
-
         #region Surface Move Tool
         static void TranslateSurfacesInWorldSpace(Vector3 translation)
         {

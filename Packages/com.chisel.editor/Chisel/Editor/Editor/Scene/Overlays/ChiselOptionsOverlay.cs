@@ -15,7 +15,7 @@ namespace Chisel.Editors
     public static class ChiselOptionsOverlay
     {
         const string kRebuildIconName   = "rebuild";
-        const string kRebuildTooltip    = "Rebuild all generated meshes";
+        const string kRebuildTooltip    = "Force rebuild all generated meshes";
         public static void Rebuild()
         {
             var startTime = EditorApplication.timeSinceStartup;
@@ -67,11 +67,11 @@ namespace Chisel.Editors
         {
             var content = editMode.m_ToolIcon;
             var selected = EditorTools.activeToolType == editModeType;
-            return GUILayout.Toggle(selected, content, GUI.skin.button, buttonOptions);
+            return GUILayout.Toggle(selected, content, styles.toggleStyle, buttonOptions);
         }
 
         static void EditModeButton(ChiselEditToolBase editMode, bool enabled)
-        {
+        { 
             var editModeType = editMode.GetType();
             using (new EditorGUI.DisabledScope(!enabled))
             {
@@ -84,12 +84,33 @@ namespace Chisel.Editors
                 }
             }
         }
+        class Styles
+        {
+            public GUIStyle toggleStyle;
+        }
+
+        static Styles styles = null;
+        static void InitStyles()
+        {
+            if (styles == null)
+            {
+                ChiselEditorSettings.Load();
+                styles = new Styles
+                {
+                    toggleStyle = new GUIStyle(GUI.skin.button)
+                    {
+                        padding     = new RectOffset(3, 3, 3, 3)
+                    }
+                };
+            }
+        }
 
         static void DisplayControls(UnityEngine.Object target, SceneView sceneView)
         {
             if (!sceneView)
                 return;
 
+            InitStyles();
             EditorGUI.BeginChangeCheck();
             {
                 AdditionalSettings?.Invoke(target, sceneView);
@@ -110,7 +131,7 @@ namespace Chisel.Editors
 
                     // TODO: assign hotkey to rebuild, and possibly move it elsewhere to avoid it seemingly like a necessary action.
 
-                    if (GUILayout.Toggle(false, kRebuildButton, GUI.skin.button, buttonOptions))
+                    if (GUILayout.Toggle(false, kRebuildButton, styles.toggleStyle, buttonOptions))
                     {
                         Rebuild();
                     }

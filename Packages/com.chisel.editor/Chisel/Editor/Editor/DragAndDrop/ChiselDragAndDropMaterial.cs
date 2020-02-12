@@ -99,7 +99,9 @@ namespace Chisel.Editors
                 surfaces.Length != 1)
                 return surfaces;
 
-            if (ChiselEditSurfaceTool.IsActive())
+            if (ChiselUVMoveTool.IsActive() ||
+                ChiselUVRotateTool.IsActive() ||
+                ChiselUVScaleTool.IsActive())
                 return surfaces;
 
             // TODO: implement the ability to query this from the edit mode

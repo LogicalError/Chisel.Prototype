@@ -17,8 +17,10 @@ namespace Chisel.Editors
         public const KeyCode SwitchToCreateEditMode     = KeyCode.F1;
         //public const KeyCode SwitchToObjectEditMode   = KeyCode.F2;
         public const KeyCode SwitchToShapeEditMode      = KeyCode.F2;
-        public const KeyCode SwitchToSurfaceEditMode    = KeyCode.F3;
-        public const KeyCode SwitchToPivotEditMode      = KeyCode.F4;
+        public const KeyCode SwitchToUVMoveMode         = KeyCode.F3;
+        public const KeyCode SwitchToUVRotateMode       = KeyCode.F4;
+        public const KeyCode SwitchToUVScaleMode        = KeyCode.F5;
+        public const KeyCode SwitchToPivotEditMode      = KeyCode.F6;
 
 
         // TODO: assign reasonable keys

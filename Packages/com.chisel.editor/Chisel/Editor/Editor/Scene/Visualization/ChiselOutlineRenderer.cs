@@ -554,7 +554,7 @@ namespace Chisel.Editors
 
                         if ((VisualizationMode & VisualizationMode.Outline) == VisualizationMode.Outline)
                         {
-                            var directSelect = ChiselEditSurfaceTool.IsActive() &&
+                            var directSelect = (ChiselUVMoveTool.IsActive() || ChiselUVRotateTool.IsActive() || ChiselUVScaleTool.IsActive()) &&
                                                ((brush == outline.brush && !anySelected) || (anySelected && ChiselSyncSelection.IsBrushVariantSelected(brush)));
 
                             // TODO: tweak look of selection, figure out how to do backfaced lighting of edges, for clarity
