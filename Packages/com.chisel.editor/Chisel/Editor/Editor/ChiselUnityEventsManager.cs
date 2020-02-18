@@ -134,14 +134,17 @@ namespace Chisel.Editors
         {
             ChiselOutlineRenderer.Instance.OnEditModeChanged();
             if (Tools.current != Tool.Custom)
+            {
                 ChiselGeneratorManager.ActivateTool(null);
+            }
+            ChiselGeneratorManager.ActivateTool(ChiselGeneratorManager.GeneratorMode);
         }
 
         private static void OnSelectionChanged()
         {
             ChiselClickSelectionManager.Instance.OnSelectionChanged();
             ChiselOutlineRenderer.Instance.OnSelectionChanged();
-            ChiselEditToolBase.OnSelectionChanged();
+            ChiselEditToolBase.NotifyOnSelectionChanged();
         }
 
         private static void OnSurfaceSelectionChanged()

@@ -14,7 +14,6 @@ namespace Chisel.Editors
     public class ChiselEditModeData : ISingletonData
     {
         public ChiselGeneratorMode currentGenerator;
-        public ChiselGeneratorMode previousGenerator;
 
         public void OnAfterDeserialize() {}
         public void OnBeforeSerialize() {}
@@ -74,24 +73,32 @@ namespace Chisel.Editors
 
                 RecordUndo("Generator selection changed");
 
-                var prevMode = Instance.data.currentGenerator;
-                Instance.data.currentGenerator = value;
-
-                ChiselOptionsOverlay.UpdateCreateToolIcon();
-
-                GeneratorSelectionChanged?.Invoke(prevMode, value);
+                ActivateTool(value);
             }
         }
 
         internal static void ActivateTool(ChiselGeneratorMode currentTool)
         {
-            if (currentTool == Instance.data.previousGenerator)
+            if (currentTool != null && Tools.hidden)
+                Tools.hidden = false;
+            if (currentTool == Instance.data.currentGenerator)
+            {
                 return;
-            if (Instance.data.previousGenerator != null)
-                Instance.data.previousGenerator.OnDeactivate();
+            }
+            if (currentTool != null && Tools.hidden)
+                Tools.hidden = false;
+
+            var prevTool = Instance.data.currentGenerator;
+            if (prevTool != null)
+                prevTool.OnDeactivate();
+            Instance.data.currentGenerator = null;
             if (currentTool != null)
                 currentTool.OnActivate();
-            Instance.data.previousGenerator = currentTool;
+            Instance.data.currentGenerator = currentTool;
+
+            ChiselOptionsOverlay.UpdateCreateToolIcon();
+
+            GeneratorSelectionChanged?.Invoke(prevTool, currentTool);
         }
 
         internal static int GeneratorIndex
@@ -122,11 +129,11 @@ namespace Chisel.Editors
                         GeneratorMode = null;
                         return;
                     }
-                    Instance.data.currentGenerator = generatorModes[index];
+                    GeneratorMode = generatorModes[index];
                     return;
                 }
 
-                Instance.data.currentGenerator = generatorModes[0];
+                GeneratorMode = generatorModes[0];
             }
         }
 

@@ -16,6 +16,7 @@ namespace Chisel.Editors
     {
         const string kRebuildIconName   = "rebuild";
         const string kRebuildTooltip    = "Force rebuild all generated meshes";
+
         public static void Rebuild()
         {
             var startTime = EditorApplication.timeSinceStartup;
@@ -45,6 +46,8 @@ namespace Chisel.Editors
         // TODO: move to dedicated manager
         internal static void Register(ChiselEditToolBase editMode)
         {
+            if (editMode.GetType() == typeof(ChiselCreateTool))
+                return;
             editModes[editMode.ToolName] = editMode;
         }
 
@@ -105,6 +108,12 @@ namespace Chisel.Editors
             }
         }
 
+        // TODO: move somewhere else
+        public static bool HaveNodesInSelection()
+        {
+            return Selection.GetFiltered<ChiselNode>(SelectionMode.OnlyUserModifiable).Length > 0;
+        }
+
         static void DisplayControls(UnityEngine.Object target, SceneView sceneView)
         {
             if (!sceneView)
@@ -115,27 +124,28 @@ namespace Chisel.Editors
             {
                 AdditionalSettings?.Invoke(target, sceneView);
 
-                var enabled = Selection.GetFiltered<ChiselNode>(SelectionMode.OnlyUserModifiable).Length > 0;
+                var enabled = HaveNodesInSelection();
 
-                if (editModes.Count > 0 && enabled)
+                if (editModes.Values.Count > 0)
                 {
-                    GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
-
-                    foreach (var editMode in editModes.Values)
+                    using (new EditorGUI.DisabledScope(!enabled))
                     {
-                        if (editMode.GetType() == typeof(ChiselCreateTool))
-                            continue;
-                        EditModeButton(editMode, enabled);
-                    }
-                    GUILayout.FlexibleSpace();
+                        GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
 
-                    // TODO: assign hotkey to rebuild, and possibly move it elsewhere to avoid it seemingly like a necessary action.
+                        foreach (var editMode in editModes.Values)
+                        {
+                            EditModeButton(editMode, enabled);
+                        }
+                        GUILayout.FlexibleSpace();
 
-                    if (GUILayout.Toggle(false, kRebuildButton, styles.toggleStyle, buttonOptions))
-                    {
-                        Rebuild();
+                        // TODO: assign hotkey to rebuild, and possibly move it elsewhere to avoid it seemingly like a necessary action.
+
+                        if (GUILayout.Toggle(false, kRebuildButton, styles.toggleStyle, buttonOptions))
+                        {
+                            Rebuild();
+                        }
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
                 }
                 
                 ChiselPlacementToolsSelectionWindow.RenderCreationTools();

@@ -17,7 +17,7 @@ namespace Chisel.Editors
     // TODO: hovering on surfaces in inspector should highlight in scene
 
     [EditorTool("Chisel " + kToolName + " Tool", typeof(ChiselNode))]
-    class ChiselUVMoveTool : ChiselEditToolBase
+    sealed class ChiselUVMoveTool : ChiselEditToolBase
     {
         const string kToolName = "UV Drag";
         public override string ToolName => kToolName;
@@ -32,11 +32,13 @@ namespace Chisel.Editors
 
         public override void OnActivate()
         {
+            base.OnActivate();
             ChiselOutlineRenderer.VisualizationMode = VisualizationMode.Surface;
         }
 
         public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
         {
+            ChiselUVToolCommon.OnSceneSettingsGUI();
         }
 
         static readonly int kSurfaceEditModeHash		= "SurfaceEditMode".GetHashCode();

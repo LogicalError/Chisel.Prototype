@@ -109,7 +109,6 @@ namespace Chisel.Editors
                     // TODO: make undoable
                     generator.InToolBox = true;
                     ChiselCreateTool.ActivateTool();
-                    Selection.activeObject = null;
                     ChiselGeneratorManager.GeneratorMode = generator;
                     ChiselEditorSettings.Save();
                     SceneView.RepaintAll();
@@ -169,7 +168,7 @@ namespace Chisel.Editors
             EditorGUI.BeginChangeCheck();
             var content     = generator.Content;
             var isSelected  = ChiselGeneratorManager.GeneratorMode == generator;
-            var value       = ToggleButton(position, content, isSelected, style, isActive);
+            var value       = ToggleButton(position, content, isSelected && isActive, style, isActive);
             if (EditorGUI.EndChangeCheck())
             {
                 if (Event.current.button == 2)
@@ -178,7 +177,6 @@ namespace Chisel.Editors
                 } else
                 { 
                     ChiselCreateTool.ActivateTool();
-                    Selection.activeObject = null;
                     ChiselGeneratorManager.GeneratorMode = generator;
                     if (value)
                         ChiselEditorSettings.Save();
@@ -279,8 +277,8 @@ namespace Chisel.Editors
         {
             InitStyles();
 
-            var generatorModes = ChiselGeneratorManager.generatorModes;
-            var isActive = ChiselCreateTool.IsActive();
+            var generatorModes  = ChiselGeneratorManager.generatorModes;
+            var isActive        = ChiselCreateTool.IsActive();
 
             var style = styles.toggleStyle;
 

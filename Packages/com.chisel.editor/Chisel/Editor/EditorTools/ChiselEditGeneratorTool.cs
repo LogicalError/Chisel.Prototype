@@ -28,15 +28,20 @@ namespace Chisel.Editors
 
         public static ChiselOverlay.WindowFunction OnEditSettingsGUI; 
         public static string CurrentEditorName;
-
+         
         public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        {
+            DefaultSceneSettingsGUI(target, sceneView);
+        }
+
+        public static void DefaultSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
         {
             OnEditSettingsGUI?.Invoke(target, sceneView);
         }
 
-
         public override void OnActivate()
         {
+            base.OnActivate();
             ChiselOutlineRenderer.VisualizationMode = VisualizationMode.None;
         }
 

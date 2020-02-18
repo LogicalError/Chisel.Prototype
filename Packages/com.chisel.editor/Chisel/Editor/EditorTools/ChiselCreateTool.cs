@@ -31,16 +31,51 @@ namespace Chisel.Editors
         const string kEditModeShotcutName = kToolName + " Mode";
         [Shortcut(ChiselKeyboardDefaults.ShortCutEditModeBase + kEditModeShotcutName, ChiselKeyboardDefaults.SwitchToCreateEditMode, displayName = kEditModeShotcutName)]
         public static void ActivateTool() { EditorTools.SetActiveTool<ChiselCreateTool>(); }
+
+        public static void DeactivateTool(bool selectNode = false)
+        {
+            if (!IsActive())
+                return;
+            // Unity has unreliable events
+            ChiselGeneratorManager.GeneratorMode.OnDeactivate();
+            EditorTools.RestorePreviousPersistentTool();
+            if (!IsActive())
+                return;
+
+            if (selectNode && ChiselOptionsOverlay.HaveNodesInSelection())
+            {
+                ChiselEditGeneratorTool.ActivateTool();
+                if (!IsActive())
+                    return;
+            }
+
+            EditorTools.RestorePreviousTool();
+            if (!IsActive())
+                return;
+
+            Tools.current = Tool.Move;
+        }
         #endregion
 
         public override void OnActivate()
         {
+            base.OnActivate();
+            UnityEditor.Selection.selectionChanged -= OnSelectionChanged;
+            UnityEditor.Selection.selectionChanged += OnSelectionChanged;
             ChiselGeneratorManager.GeneratorMode.OnActivate();
+            ChiselOutlineRenderer.VisualizationMode = VisualizationMode.None;
         }
 
         public override void OnDeactivate()
         {
+            base.OnDeactivate();
+            UnityEditor.Selection.selectionChanged -= OnSelectionChanged;
             ChiselGeneratorManager.GeneratorMode.OnDeactivate();
+        }
+
+        public void OnSelectionChanged()
+        {
+            DeactivateTool(selectNode: true);
         }
 
         public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
@@ -53,6 +88,25 @@ namespace Chisel.Editors
             var generatorMode = ChiselGeneratorManager.GeneratorMode;
             if (generatorMode == null)
                 return;
+
+            switch (Event.current.type)
+            {
+                case EventType.KeyDown:
+                {
+                    if (Event.current.keyCode == KeyCode.Escape)
+                        Event.current.Use();
+                    break;
+                }
+                case EventType.KeyUp:
+                {
+                    if (Event.current.keyCode == KeyCode.Escape)
+                    {
+                        DeactivateTool();
+                        Event.current.Use();
+                    }
+                    break;
+                }
+            }
 
             ChiselOptionsOverlay.AdditionalSettings = OnSceneSettingsGUI;
             ChiselOptionsOverlay.SetTitle($"Create {generatorMode.ToolName}");

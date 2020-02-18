@@ -33,8 +33,18 @@ namespace Chisel.Editors
 
         public void OnEnable()
         {
+            lastSelectedNode = null;
+            ChiselOptionsOverlay.Register(this);
+            ToolNotActivatingBugWorkAround(); 
             UpdateIcon();
-            ChiselOptionsOverlay.Register(this); 
+            NotifyOnSelectionChanged();
+        }
+
+        public void Awake()
+        {
+            lastSelectedNode = null;
+            ToolNotActivatingBugWorkAround();
+            NotifyOnSelectionChanged();
         }
 
         public void UpdateIcon()
@@ -50,7 +60,7 @@ namespace Chisel.Editors
 
         static bool haveNodeSelection = false;
 
-        public static void OnSelectionChanged()
+        public static void NotifyOnSelectionChanged()
         {
             haveNodeSelection = (Selection.GetFiltered<ChiselNode>(SelectionMode.Deep | SelectionMode.Editable).Length > 0);
         }
@@ -59,12 +69,39 @@ namespace Chisel.Editors
         {
             if (!haveNodeSelection)
                 return;
+
+            ChiselOptionsOverlay.AdditionalSettings = ChiselEditGeneratorTool.DefaultSceneSettingsGUI;
+            ChiselOptionsOverlay.SetTitle(Convert.ToString(Tools.current)); // TODO: cache these strings
+
             ChiselOptionsOverlay.Show();
             ChiselGridOptionsOverlay.Show();
         }
 
+
+        static ChiselEditToolBase lastSelectedNode = null;
+
+        public void ToolNotActivatingBugWorkAround()
+        {
+            if (lastSelectedNode == null)
+            {
+                if (EditorTools.activeToolType == this.GetType())
+                {
+                    OnActivate();
+                    lastSelectedNode = this;
+                }
+            }
+        }
+
         public override void OnToolGUI(EditorWindow window)
         {
+            if (lastSelectedNode == null ||
+                lastSelectedNode != this)
+            {
+                if (lastSelectedNode != null)
+                    lastSelectedNode.OnDeactivate();
+                lastSelectedNode = this;
+                OnActivate();
+            }
             var sceneView = window as SceneView;
             var dragArea = sceneView.position;
             dragArea.position = Vector2.zero;
@@ -77,9 +114,14 @@ namespace Chisel.Editors
             ChiselGridOptionsOverlay.Show();
         }
 
-        public virtual void OnActivate() { }
+        public virtual void OnActivate()
+        {
+            lastSelectedNode = this;
+        }
 
-        public virtual void OnDeactivate() { }
+        public virtual void OnDeactivate()
+        {
+        } 
 
         public abstract void OnSceneGUI(SceneView sceneView, Rect dragArea);
     }

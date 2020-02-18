@@ -27,6 +27,7 @@ namespace Chisel.Editors
 
         public override void OnActivate()
         {
+            base.OnActivate();
             ChiselOutlineRenderer.VisualizationMode = VisualizationMode.Outline;
         }
 
