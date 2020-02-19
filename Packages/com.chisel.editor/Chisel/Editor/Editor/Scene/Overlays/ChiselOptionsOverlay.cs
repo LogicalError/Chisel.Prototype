@@ -30,15 +30,15 @@ namespace Chisel.Editors
 
         const int kPrimaryOrder = int.MaxValue;
         
-        static readonly GUIContent      kOverlayTitle   = new GUIContent("Chisel");
-        static readonly ChiselOverlay   kOverlay        = new ChiselOverlay(kOverlayTitle, DisplayControls, kPrimaryOrder);
+        const string                    kOverlayTitle   = "Chisel";
+        static readonly ChiselOverlay   OverlayWindow   = new ChiselOverlay(kOverlayTitle, DisplayControls, kPrimaryOrder);
 
         static GUIContent kRebuildButton;
 
         static SortedList<string, ChiselEditToolBase> editModes = new SortedList<string, ChiselEditToolBase>();
 
         [InitializeOnLoadMethod]
-        static void Initialize()
+        internal static void Initialize()
         {
             kRebuildButton = ChiselEditorResources.GetIconContent(kRebuildIconName, kRebuildTooltip)[0];
         }
@@ -102,7 +102,7 @@ namespace Chisel.Editors
                 {
                     toggleStyle = new GUIStyle(GUI.skin.button)
                     {
-                        padding     = new RectOffset(3, 3, 3, 3)
+                        padding = new RectOffset(3, 3, 3, 3)
                     }
                 };
             }
@@ -114,15 +114,13 @@ namespace Chisel.Editors
             return Selection.GetFiltered<ChiselNode>(SelectionMode.OnlyUserModifiable).Length > 0;
         }
 
-        static void DisplayControls(UnityEngine.Object target, SceneView sceneView)
-        {
-            if (!sceneView)
-                return;
 
+        static void DisplayControls(SceneView sceneView)
+        {
             InitStyles();
             EditorGUI.BeginChangeCheck();
             {
-                AdditionalSettings?.Invoke(target, sceneView);
+                AdditionalSettings?.Invoke(sceneView);
 
                 var enabled = HaveNodesInSelection();
 
@@ -147,7 +145,7 @@ namespace Chisel.Editors
                         GUILayout.EndHorizontal();
                     }
                 }
-                
+
                 ChiselPlacementToolsSelectionWindow.RenderCreationTools();
             }
             if (EditorGUI.EndChangeCheck())
@@ -156,12 +154,12 @@ namespace Chisel.Editors
 
         public static void SetTitle(string title)
         {
-            kOverlayTitle.text = title;
+            OverlayWindow.Title = title;
         }
 
         public static void Show()
         {
-            kOverlay.Show();
+            OverlayWindow.Show();
         }
     }
 }

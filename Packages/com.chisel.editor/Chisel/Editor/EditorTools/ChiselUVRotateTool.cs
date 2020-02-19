@@ -33,12 +33,19 @@ namespace Chisel.Editors
         public override void OnActivate()
         {
             base.OnActivate();
+            ChiselUVToolCommon.Instance.OnActivate();
             ChiselOutlineRenderer.VisualizationMode = VisualizationMode.Surface;
         }
 
-        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        public override void OnDeactivate()
         {
-            ChiselUVToolCommon.OnSceneSettingsGUI();
+            base.OnDeactivate();
+            ChiselUVToolCommon.Instance.OnDeactivate();
+        }
+
+        public override void OnSceneSettingsGUI(SceneView sceneView)
+        {
+            ChiselUVToolCommon.Instance.OnSceneSettingsGUI();
         }
 
         static readonly int kSurfaceEditModeHash		= "SurfaceEditMode".GetHashCode();

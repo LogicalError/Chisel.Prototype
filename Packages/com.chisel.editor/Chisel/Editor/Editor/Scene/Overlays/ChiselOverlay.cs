@@ -14,30 +14,62 @@ namespace Chisel.Editors
 {
     public class ChiselOverlay
     {
-        public const int kMinWidth = 248;
+        public const int kMinWidth = 248 + 36;
         public static readonly GUILayoutOption kMinWidthLayout = GUILayout.MinWidth(kMinWidth);
 
-        public delegate void WindowFunction(UnityEngine.Object target, SceneView sceneView);
+        public delegate void WindowFunction(SceneView sceneView);
+        delegate void InternalWindowFunction(UnityEngine.Object target, SceneView sceneView);
+
+        const float kTopPadding = 22;
+        const float kBottomPadding = 4;
+
+        public GUIContent   TitleContent    { get { return title; } set { title.text = value.text; title.tooltip = value.tooltip; title.image = value.image; } }
+        public string       Title           { get { return title.text; } set { title.text = value; } }
+
+        readonly GUIContent         title;
+        readonly WindowFunction     sceneViewFunc;
+
+        void OuterWindowFunc(UnityEngine.Object target, SceneView sceneView)
+        {
+            if (!sceneView)
+                return;
+
+            var startRect = EditorGUILayout.GetControlRect(false, height: 0);
+            sceneViewFunc(sceneView);
+            var endRect = EditorGUILayout.GetControlRect(false, height: 0);
+            switch (Event.current.type)
+            {
+                case EventType.MouseMove:
+                case EventType.MouseDown:
+                case EventType.MouseUp:
+                {
+                    if (GUIUtility.hotControl == 0)
+                    {
+                        startRect.yMin -= kTopPadding;
+                        endRect.yMin += kBottomPadding;
+                        var rect = new Rect(startRect.xMin, startRect.yMin, startRect.width, endRect.y - startRect.y);
+                        if (rect.Contains(Event.current.mousePosition))
+                        {
+                            Event.current.Use();
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        public ChiselOverlay(string title, WindowFunction sceneViewFunc, int primaryOrder)
+        {
+            this.sceneViewFunc = sceneViewFunc;
+            this.title = new GUIContent(title);
+            Initialize(primaryOrder);
+        }
 
         public ChiselOverlay(GUIContent title, WindowFunction sceneViewFunc, int primaryOrder)
         {
-            InitializeTypes();
-
-            var sceneViewFuncDelegate = Delegate.CreateDelegate(s_WindowFunctionType, sceneViewFunc.Method);
-
-#if UNITY_2019_3
-            windowMethod_parameters = new object[]
-            { 
-                title, sceneViewFuncDelegate, primaryOrder, s_WindowMethod_parameter_overlay
-            };
-#elif UNITY_2020_1_OR_NEWER
-            //public OverlayWindow(GUIContent title, SceneViewOverlay.WindowFunction guiFunction, int primaryOrder, Object target, SceneViewOverlay.WindowDisplayOption option)
-            var overlayWindow = Activator.CreateInstance(overlayWindowType, title, sceneViewFuncDelegate, primaryOrder, null, windowMethod_parameter_overlay);
-            windowMethod_parameters = new object[] 
-            { 
-                overlayWindow 
-            };
-#endif
+            this.sceneViewFunc = sceneViewFunc;
+            this.title = title;
+            Initialize(primaryOrder);
         }
 
         public void Show()
@@ -54,11 +86,8 @@ namespace Chisel.Editors
 
         object[] windowMethod_parameters;
 
-        internal void InitializeTypes()
+        void Initialize(int primaryOrder)
         {
-            if (windowMethod != null)
-                return;
-            
             s_OverlayWindowType       = ReflectionExtensions.GetTypeByName("UnityEditor.SceneViewOverlay+OverlayWindow");
             s_WindowFunctionType      = ReflectionExtensions.GetTypeByName("UnityEditor.SceneViewOverlay+WindowFunction");
             s_SceneViewOverlayType    = ReflectionExtensions.GetTypeByName("UnityEditor.SceneViewOverlay");
@@ -71,6 +100,23 @@ namespace Chisel.Editors
 #elif UNITY_2020_1_OR_NEWER
             //public static void ShowWindow(OverlayWindow window)
             windowMethod = sceneViewOverlayType.GetMethod("ShowWindow", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+#endif
+
+            InternalWindowFunction outerWindowFunc = OuterWindowFunc;
+            var sceneViewFuncDelegate = Delegate.CreateDelegate(s_WindowFunctionType, this, outerWindowFunc.Method);
+
+#if UNITY_2019_3
+            windowMethod_parameters = new object[]
+            {
+                title, sceneViewFuncDelegate, primaryOrder, s_WindowMethod_parameter_overlay
+            };
+#elif UNITY_2020_1_OR_NEWER
+            //public OverlayWindow(GUIContent title, SceneViewOverlay.WindowFunction guiFunction, int primaryOrder, Object target, SceneViewOverlay.WindowDisplayOption option)
+            var overlayWindow = Activator.CreateInstance(overlayWindowType, title, sceneViewFuncDelegate, primaryOrder, null, windowMethod_parameter_overlay);
+            windowMethod_parameters = new object[] 
+            { 
+                overlayWindow 
+            };
 #endif
         }
 

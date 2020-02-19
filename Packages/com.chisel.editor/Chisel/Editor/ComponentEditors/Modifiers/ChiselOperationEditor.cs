@@ -60,7 +60,7 @@ namespace Chisel.Editors
             ChiselEditGeneratorTool.CurrentEditorName = null;
         }
         
-        protected override void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        protected override void OnEditSettingsGUI(SceneView sceneView)
         {
             if (Tools.current != Tool.Custom)
                 return;

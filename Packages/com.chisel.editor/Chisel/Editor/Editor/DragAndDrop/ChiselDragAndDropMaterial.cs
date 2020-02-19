@@ -59,7 +59,7 @@ namespace Chisel.Editors
             if (prevBrushMaterials == null ||
                 prevBrushMaterials.Length != surface.Length)
             {
-                prevMaterials = new Material[surface.Length];
+                prevMaterials       = new Material[surface.Length];
                 prevBrushMaterials  = new ChiselBrushMaterial[surface.Length];
             }
             for (int i = 0; i < surface.Length; i++)

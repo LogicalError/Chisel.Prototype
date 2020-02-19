@@ -15,7 +15,7 @@ namespace Chisel.Editors
     {
         const int kPrimaryOrder = 99;
 
-        static readonly GUIContent      kOverlayTitle               = new GUIContent("Grid");
+        const string                    kOverlayTitle               = "Grid";
         static readonly ChiselOverlay   kOverlay                    = new ChiselOverlay(kOverlayTitle, DisplayControls, kPrimaryOrder);
 
         static readonly GUIContent      kDoubleSnapDistanceButton   = EditorGUIUtility.TrTextContent("+", "Double the snapping distance.\nHotkey: ]");
@@ -23,11 +23,8 @@ namespace Chisel.Editors
 
         static GUILayoutOption sizeButtonWidth = GUILayout.Width(16);
 
-        static void DisplayControls(System.Object target, SceneView sceneView)
+        static void DisplayControls(SceneView sceneView)
         {
-            if (!sceneView)
-                return;
-
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal(ChiselOverlay.kMinWidthLayout);
 

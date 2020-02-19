@@ -15,10 +15,7 @@ namespace Chisel.Editors
     {
         // TODO: make these shared resources since this name is used in several places (with identical context)
         static readonly GUIContent  kSurfacesContent        = new GUIContent("Surfaces");
-        static readonly GUIContent  kDescriptionContent     = new GUIContent("Description");
-        static readonly GUIContent  kBrushMaterialContent   = new GUIContent("Brush Material");
         const string                kSurfacePropertyName    = "Surface {0}";
-        const string                kSurfacePathName        = "{0}[{1}]";
         static GUIContent           surfacePropertyContent  = new GUIContent();
 
 
@@ -51,6 +48,7 @@ namespace Chisel.Editors
                 SessionState.SetBool(path, surfacesVisible);
             if (surfacesVisible)
             {
+                EditorGUI.BeginChangeCheck();
                 EditorGUI.indentLevel++;
                 SerializedProperty elementProperty;
                 for (int i = 0; i < surfacesProp.arraySize; i++)
@@ -60,6 +58,10 @@ namespace Chisel.Editors
                     EditorGUILayout.PropertyField(elementProperty, surfacePropertyContent, true);
                 }
                 EditorGUI.indentLevel--;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    property.serializedObject.ApplyModifiedProperties();
+                }
             }
 
             EditorGUI.showMixedValue = prevShowMixedValue;

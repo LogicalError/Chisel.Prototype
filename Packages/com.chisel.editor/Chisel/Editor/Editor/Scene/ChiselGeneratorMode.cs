@@ -51,7 +51,7 @@ namespace Chisel.Editors
             EditorGUIUtility.ExitGUI();
         }
 
-        public void             OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView) { OnSceneSettingsGUI(); }
+        public void             OnSceneSettingsGUI(SceneView sceneView) { OnSceneSettingsGUI(); }
         public virtual void     OnSceneSettingsGUI() {}
 
         public abstract void OnSceneGUI(SceneView sceneView, Rect dragArea);

@@ -28,6 +28,28 @@ namespace Chisel.Components
             this.surfaceID      = surfaceID;
         }
 
+        public void SetDirty()
+        {
+            brushContainerAsset.SetDirty();
+        }
+
+        public ChiselSurface BrushSurface
+        {
+            get
+            {
+                if (!brushContainerAsset)
+                    return null;
+                if (subMeshIndex < 0 || subMeshIndex >= brushContainerAsset.SubMeshCount)
+                    return null;
+                var brushMesh = brushContainerAsset.BrushMeshes[subMeshIndex];
+                if (brushMesh == null)
+                    return null;
+                if (surfaceIndex < 0 || surfaceIndex >= brushMesh.polygons.Length)
+                    return null;
+                return brushMesh.polygons[surfaceIndex].surface;
+            }
+        }
+
         public ChiselBrushMaterial BrushMaterial
         {
             get

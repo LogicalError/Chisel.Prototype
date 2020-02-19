@@ -382,7 +382,7 @@ namespace Chisel.Editors
             GUILayout.EndHorizontal();
         }
 
-        protected abstract void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView);
+        protected abstract void OnEditSettingsGUI(SceneView sceneView);
 
         public override void OnInspectorGUI()
         {
@@ -571,7 +571,7 @@ namespace Chisel.Editors
         protected virtual void ResetInspector() { ResetDefaultInspector(); } 
         protected virtual void InitInspector() { InitDefaultInspector(); }
 
-        protected override void OnEditSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        protected override void OnEditSettingsGUI(SceneView sceneView)
         {
             if (Tools.current != Tool.Custom)
                 return;

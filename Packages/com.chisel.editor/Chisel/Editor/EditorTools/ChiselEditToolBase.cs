@@ -55,7 +55,7 @@ namespace Chisel.Editors
             cachedIconContent.tooltip   = newContent.tooltip;
         }
 
-        public abstract void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView);
+        public abstract void OnSceneSettingsGUI(SceneView sceneView);
 
 
         static bool haveNodeSelection = false;

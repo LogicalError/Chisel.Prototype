@@ -273,6 +273,8 @@ namespace Chisel.Editors
 
         public static readonly GUILayoutOption kMinInnerWidthLayout = GUILayout.MinWidth(ChiselOverlay.kMinWidth - 8);
 
+        const int kToolsWide = 8;
+
         public static void RenderCreationTools()
         {
             InitStyles();
@@ -291,7 +293,7 @@ namespace Chisel.Editors
                 usedModes++;
             }
 
-            int rows = Mathf.CeilToInt((usedModes + 1) / 7.0f);
+            int rows = Mathf.CeilToInt((usedModes + 1) / (float)kToolsWide);
             var boxStyle = GUI.skin.box;
             var groupRect = EditorGUILayout.GetControlRect(false, (rows * style.fixedHeight) + boxStyle.margin.vertical, ChiselOverlay.kMinWidthLayout);
 
@@ -314,13 +316,13 @@ namespace Chisel.Editors
                 if (!generatorModes[i].InToolBox && 
                     ChiselGeneratorManager.GeneratorMode != generatorModes[i])
                     continue;
-                if (xpos >= 7) { ypos++; xpos = 0; }
+                if (xpos >= kToolsWide) { ypos++; xpos = 0; }
                 position.x = leftMargin + xpos * buttonWidth;
                 position.y = topMargin  + ypos * buttonHeight;
                 GeneratorButton(position, generatorModes[i], style, isActive);
                 xpos++;
             }
-            if (xpos >= 7) { ypos++; xpos = 0; }
+            if (xpos >= kToolsWide) { ypos++; xpos = 0; }
             {
                 position.x = styles.addStyle.margin.left + topX + xpos * buttonWidth;
                 position.y = styles.addStyle.margin.top  + topY + ypos * buttonHeight;

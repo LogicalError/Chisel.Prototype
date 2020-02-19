@@ -78,9 +78,9 @@ namespace Chisel.Editors
             DeactivateTool(selectNode: true);
         }
 
-        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        public override void OnSceneSettingsGUI(SceneView sceneView)
         {
-            ChiselGeneratorManager.GeneratorMode.OnSceneSettingsGUI(target, sceneView);
+            ChiselGeneratorManager.GeneratorMode.OnSceneSettingsGUI(sceneView);
         }
 
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)

@@ -143,7 +143,7 @@ namespace Chisel.Editors
         }
         #endregion
 
-        public override void OnSceneSettingsGUI(UnityEngine.Object target, SceneView sceneView)
+        public override void OnSceneSettingsGUI(SceneView sceneView)
         {
         }
 
