@@ -83,6 +83,12 @@ namespace Chisel.Editors
             ChiselGeneratorManager.GeneratorMode.OnSceneSettingsGUI(sceneView);
         }
 
+        public virtual void Cancel()
+        {
+            DeactivateTool();
+            GUIUtility.ExitGUI();
+        }
+
         public override void OnSceneGUI(SceneView sceneView, Rect dragArea)
         {
             var generatorMode = ChiselGeneratorManager.GeneratorMode;
@@ -101,7 +107,7 @@ namespace Chisel.Editors
                 {
                     if (Event.current.keyCode == KeyCode.Escape)
                     {
-                        DeactivateTool();
+                        Cancel();
                         Event.current.Use();
                     }
                     break;

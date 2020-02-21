@@ -12,12 +12,14 @@ namespace Chisel.Core
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct ChiselSurfaceIntersection
     {
-        public Plane	localPlane;
-        public Plane	treePlane;
-        public Plane	worldPlane;
+        public Plane	localPlane;        
+        public Vector2	localPlaneIntersection;
 
-        public Vector3	worldIntersection;
-        public Vector2	surfaceIntersection;
+        public Plane    treePlane;
+        public Vector3  treePlaneIntersection;
+
+        public Plane    worldPlane;
+        public Vector3	worldPlaneIntersection;
 
         public float	distance;
 
@@ -26,8 +28,8 @@ namespace Chisel.Core
             localPlane			= new Plane(Vector3.zero, 0),
             treePlane			= new Plane(Vector3.zero, 0),
             worldPlane			= new Plane(Vector3.zero, 0),
-            worldIntersection	= Vector3.zero,
-            surfaceIntersection = Vector2.zero,
+            worldPlaneIntersection	= Vector3.zero,
+            localPlaneIntersection = Vector2.zero,
             distance			= float.PositiveInfinity
         };
     };

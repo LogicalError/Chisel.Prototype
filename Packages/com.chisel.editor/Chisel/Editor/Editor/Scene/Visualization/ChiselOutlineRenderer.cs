@@ -667,16 +667,15 @@ namespace Chisel.Editors
                 VisualizationMode = VisualizationMode.Outline;
 
             // defer surface updates when it's not currently visible
-            if ((VisualizationMode & (VisualizationMode.Outline | VisualizationMode.SimpleOutline)) != VisualizationMode.None)
-            {
-                UpdateBrushState();
-                brushOutlineRenderer.RenderAll(camera);
-            }
-
             if ((VisualizationMode & VisualizationMode.Surface) == VisualizationMode.Surface)
             {
                 UpdateSurfaceState();
                 surfaceOutlineRenderer.RenderAll(camera);
+            } else
+            if ((VisualizationMode & (VisualizationMode.Outline | VisualizationMode.SimpleOutline)) != VisualizationMode.None)
+            {
+                UpdateBrushState();
+                brushOutlineRenderer.RenderAll(camera);
             }
 
             var handleRenderer = GetHandleRenderer(camera);

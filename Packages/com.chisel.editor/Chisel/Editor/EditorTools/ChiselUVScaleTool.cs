@@ -382,7 +382,7 @@ namespace Chisel.Editors
         {
             if (!hoverIntersection.HasValue)
                 return;
-            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldIntersection;
+            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
             var normal              = hoverIntersection.Value.surfaceIntersection.worldPlane.normal;
             SceneHandles.RenderBorderedCircle(position, HandleUtility.GetHandleSize(position) * 0.02f);
         }
@@ -391,7 +391,7 @@ namespace Chisel.Editors
         {
             if (!hoverIntersection.HasValue)
                 return;
-            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldIntersection;
+            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
             var normal              = hoverIntersection.Value.surfaceIntersection.worldPlane.normal;
             Handles.RectangleHandleCap(-1, position, Camera.current.transform.rotation, HandleUtility.GetHandleSize(position) * 0.1f, EventType.Repaint);
         }
@@ -407,7 +407,7 @@ namespace Chisel.Editors
             if (!hoverIntersection.HasValue)
                 return;
 
-            var position = hoverIntersection.Value.surfaceIntersection.worldIntersection;
+            var position = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
             RenderIntersectionPoint(position);
             if (forceVertexSnapping)
                 RenderVertexBox(position);
@@ -448,7 +448,7 @@ namespace Chisel.Editors
 
                 if (!float.IsInfinity(intersection.surfaceIntersection.distance))
                 {
-                    intersection.surfaceIntersection.worldIntersection = SnapIntersection(intersection.surfaceIntersection.worldIntersection, surfaceReference, out pointHasSnapped);
+                    intersection.surfaceIntersection.worldPlaneIntersection = SnapIntersection(intersection.surfaceIntersection.worldPlaneIntersection, surfaceReference, out pointHasSnapped);
                 }
                 hoverIntersection = intersection;
                 hoverSurfaceReference = surfaceReference;
@@ -616,12 +616,10 @@ namespace Chisel.Editors
             pointHasSnapped = false;
         }
 
-        static void CancelTool()
+        static void CancelToolInProgress()
         {
             DisableTool();
             Undo.RevertAllInCurrentGroup();
-            Event.current.Use();
-            GUIUtility.ExitGUI(); // avoids a nullreference exception in sceneview
         }
 
         const float kMaxControlDistance = 3.0f;
@@ -641,26 +639,6 @@ namespace Chisel.Editors
                     break;
                 }
 
-                case EventType.ValidateCommand:
-                {
-                    if (IsToolEnabled(id))
-                    {
-                        if (evt.keyCode == KeyCode.Escape)
-                        {
-                            evt.Use();
-                            break;
-                        }
-                    }
-                    if (!EditorGUIUtility.editingTextField)
-                    {
-                        if (evt.keyCode == KeyCode.V)
-                        {
-                            evt.Use();
-                            break;
-                        }
-                    }
-                    break;
-                }
                 case EventType.KeyDown:
                 {
                     if (IsToolEnabled(id))
@@ -688,7 +666,9 @@ namespace Chisel.Editors
                     {
                         if (evt.keyCode == KeyCode.Escape)
                         {
-                            CancelTool();
+                            CancelToolInProgress();
+                            evt.Use();
+                            GUIUtility.ExitGUI(); // avoids a nullreference exception in sceneview
                             break;
                         }
                     }
@@ -803,9 +783,8 @@ namespace Chisel.Editors
 
             // Find the intersecting surfaces
             startSurfaceReference           = hoverSurfaceReference;
-            var currentIntersection         = hoverIntersection.Value.surfaceIntersection;
 
-            selectedSurfaceReferences	= ChiselSurfaceSelectionManager.Selection.ToArray();
+            selectedSurfaceReferences	    = ChiselSurfaceSelectionManager.Selection.ToArray();
 
             // We need all the brushContainerAssets for all the surfaces we're moving, so that we can record them for an undo
             selectedBrushContainerAsset		= ChiselSurfaceSelectionManager.SelectedBrushMeshes.ToArray();
@@ -822,10 +801,8 @@ namespace Chisel.Editors
             }
             
             // Find the intersection point/plane in model space
-            var nodeTransform		= startSurfaceReference.node.hierarchyItem.Transform;
-            var modelTransform		= ChiselNodeHierarchyManager.FindModelTransformOfTransform(nodeTransform);
-            worldStartPosition		= modelTransform.localToWorldMatrix.MultiplyPoint (hoverIntersection.Value.surfaceIntersection.worldIntersection);
-            worldProjectionPlane	= modelTransform.localToWorldMatrix.TransformPlane(hoverIntersection.Value.surfaceIntersection.worldPlane);
+            worldStartPosition		= hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
+            worldProjectionPlane	= hoverIntersection.Value.surfaceIntersection.worldPlane;
             worldIntersection = worldStartPosition;
 
             // TODO: we want to be able to determine delta movement over a plane. Ideally it would match the position of the cursor perfectly.
@@ -848,8 +825,7 @@ namespace Chisel.Editors
         {
             var currentWorldIntersection = worldStartPosition;                    
             var mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
-            var enter = 0.0f;
-            if (worldDragPlane.SignedRaycast(mouseRay, out enter))
+            if (worldDragPlane.SignedRaycast(mouseRay, out float enter))
                 currentWorldIntersection = mouseRay.GetPoint(enter);
             currentWorldIntersection = SnapIntersection(currentWorldIntersection, startSurfaceReference, out pointHasSnapped);
             return currentWorldIntersection;
@@ -897,8 +873,7 @@ namespace Chisel.Editors
                         break;
                     
                     StartToolDragging();
-
-                    var dragVector = worldDragDeltaVector;
+                    // TODO: implement
                     break;
                 }
             }

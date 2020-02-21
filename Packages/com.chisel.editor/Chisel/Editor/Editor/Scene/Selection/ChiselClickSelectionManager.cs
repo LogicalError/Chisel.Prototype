@@ -16,7 +16,7 @@ namespace Chisel.Editors
         public PlaneIntersection(Vector3 point, Vector3 normal) { this.point = point; this.plane = new Plane(normal, point); }
         public PlaneIntersection(CSGTreeBrushIntersection brushIntersection, ChiselNode node, ChiselModel model)
         {
-            this.point = brushIntersection.surfaceIntersection.worldIntersection;
+            this.point = brushIntersection.surfaceIntersection.worldPlaneIntersection;
             this.plane = brushIntersection.surfaceIntersection.worldPlane;
             this.node = node;
             this.model = model;
