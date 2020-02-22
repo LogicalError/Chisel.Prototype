@@ -130,7 +130,7 @@ namespace Chisel.Components
             }
         }
         
-        public Vector3     PivotOffset
+        public override Vector3     PivotOffset
         {
             get
             {
