@@ -194,6 +194,30 @@ namespace Chisel.Core
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool		IsInTree(CSGTreeBrush brush)	{ return DoesTreeContainBrush(treeNodeID, brush.NodeID); }
 
+        [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+        struct NativeSurfaceIntersection
+        {
+            public Plane localPlane;
+            public Plane treePlane;
+            public Plane worldPlane;
+
+            public Vector3 worldIntersection;
+            public Vector2 surfaceIntersection;
+
+            public float distance;
+        };
+
+        [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+        struct NativeTreeBrushIntersection
+        {
+            public CSGTree		tree;
+            public CSGTreeBrush	brush;
+        
+            public Int32        surfaceID;
+            public Int32        brushUserID;
+
+            public NativeSurfaceIntersection surfaceIntersection;
+        };
         
         private bool RayCastMulti(MeshQuery[]						meshQuery, // TODO: add meshquery support here
                                   Vector3							worldRayStart,
@@ -204,7 +228,7 @@ namespace Chisel.Core
                                   CSGTreeNode[]						ignoreNodes = null)
         {
             intersections = null;
-            Int32 intersectionCount = 0;
+            Int32 intersectionCount;
 
             var ignoreNodeIDsHandle		= (ignoreNodes != null) ? GCHandle.Alloc(ignoreNodes, GCHandleType.Pinned) : new GCHandle();
             { 
@@ -226,20 +250,43 @@ namespace Chisel.Core
 
             if (intersectionCount > 0)
             {			
-                var outputIntersections			= new CSGTreeBrushIntersection[intersectionCount];				
-                var outputIntersectionsHandle	= GCHandle.Alloc(outputIntersections, GCHandleType.Pinned);
+                var nativeIntersections         = new NativeTreeBrushIntersection[intersectionCount];				
+                var nativeIntersectionsHandle   = GCHandle.Alloc(nativeIntersections, GCHandleType.Pinned);
                 {
-                    var outputIntersectionsPtr	= outputIntersectionsHandle.AddrOfPinnedObject();
-                    var result = RayCastMultiGet(intersectionCount, outputIntersectionsPtr);
-                    if (result) intersections = outputIntersections;
-                    else        intersections = null;
+                    var nativeIntersectionsPtr  = nativeIntersectionsHandle.AddrOfPinnedObject();
+                    if (!RayCastMultiGet(intersectionCount, nativeIntersectionsPtr))
+                        return false;
                 }
+
+                var outputIntersections = new CSGTreeBrushIntersection[intersectionCount];
+                intersections = outputIntersections;
                 for (int i = 0; i < intersectionCount; i++)
                 {
-                    outputIntersections[i].surfaceIntersection.worldPlane = treeLocalToWorldMatrix.TransformPlane(outputIntersections[i].surfaceIntersection.worldPlane);
-                    outputIntersections[i].surfaceIntersection.worldIntersection = treeLocalToWorldMatrix.MultiplyPoint(outputIntersections[i].surfaceIntersection.worldIntersection);
+                    var nativeIntersection = nativeIntersections[i];
+                    outputIntersections[i] = new CSGTreeBrushIntersection()
+                    { 
+                        tree            = nativeIntersection.tree,
+                        brush           = nativeIntersection.brush,
+
+                        surfaceID       = nativeIntersection.surfaceID,
+                        brushUserID     = nativeIntersection.brushUserID,
+
+                        surfaceIntersection = new ChiselSurfaceIntersection()
+                        { 
+                            localPlane              = nativeIntersection.surfaceIntersection.localPlane,
+                            localPlaneIntersection  = nativeIntersection.surfaceIntersection.surfaceIntersection,
+
+                            treePlane               = nativeIntersection.surfaceIntersection.worldPlane,        // bug?
+                            treePlaneIntersection   = nativeIntersection.surfaceIntersection.worldIntersection, // bug?
+
+                            worldPlane              = treeLocalToWorldMatrix.TransformPlane(nativeIntersection.surfaceIntersection.worldPlane),
+                            worldPlaneIntersection  = treeLocalToWorldMatrix.MultiplyPoint (nativeIntersection.surfaceIntersection.worldIntersection),
+
+                            distance                = nativeIntersection.surfaceIntersection.distance
+                        }
+                    };
                 }
-                outputIntersectionsHandle.Free();
+                nativeIntersectionsHandle.Free();
             }			
             return intersections != null;
         }
