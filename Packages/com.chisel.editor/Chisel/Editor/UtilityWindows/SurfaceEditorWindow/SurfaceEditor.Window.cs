@@ -28,7 +28,7 @@ namespace Chisel.Editors
         {
             SurfaceEditor window = GetWindow<SurfaceEditor>( true, "Surface Properties" );
 
-            window.minSize = new Vector2( 400, 240 );
+            window.minSize = new Vector2( 400, 230 );
             window.maxSize = window.minSize;
             window.Show();
         }

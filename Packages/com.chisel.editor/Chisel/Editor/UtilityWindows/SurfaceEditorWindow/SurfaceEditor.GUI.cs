@@ -8,11 +8,13 @@ namespace Chisel.Editors
 {
     internal partial class SurfaceEditor
     {
-        private float           m_PanIncrementU = 1.0f;
-        private float           m_PanIncrementV = 1.0f;
-        private float           m_RotIncrement  = 15.0f;
-        private int             m_CurrentTab    = 0;
-        private LayerUsageFlags m_LayerUsage    = LayerUsageFlags.All;
+        private float           m_PanIncrementU   = 1.0f;
+        private float           m_PanIncrementV   = 1.0f;
+        private float           m_RotIncrement    = 15.0f;
+        private float           m_ScaleIncrementU = 1.0f;
+        private float           m_ScaleIncrementV = 1.0f;
+        private int             m_CurrentTab      = 0;
+        private LayerUsageFlags m_LayerUsage      = LayerUsageFlags.All;
 
         // $TODO: find a way to edit surface flags outside of model... its serialized by unity and not visible to SurfaceReference or ChiselBrushMaterial.
         //private SurfaceFlags    m_WorldSpaceTex = SurfaceFlags.TextureIsInWorldSpace;
@@ -79,7 +81,7 @@ namespace Chisel.Editors
         // UV Editing - translation, scale, rotation, anchor/pivot, auto fit
         private void DrawUVTabContent()
         {
-            GUILayout.BeginHorizontal(); // pan/rotation
+            GUILayout.BeginHorizontal(); // pan/rotation/scale
             {
                 GUILayout.Space( 4 );
 
@@ -129,6 +131,57 @@ namespace Chisel.Editors
                     GUILayout.EndHorizontal();
 
                     GUILayout.Space( 4 );
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label( "Scale", "OL Title", GUILayout.Width( 64 ) );
+                        GUILayout.Label( "",      "OL Title" );
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space( 2 );
+                    GUILayout.BeginHorizontal(); // scale
+                    {
+                        GUILayout.Label( "U", GUILayout.Width( 16 ) );
+                        if( GUILayout.Button( "-", "minibuttonleft", GUILayout.Width( 20 ) ) )
+                        {
+                        }
+
+                        if( GUILayout.Button( "+", "minibuttonright", GUILayout.Width( 20 ) ) )
+                        {
+                        }
+
+                        GUILayout.Space( 2 );
+                        m_ScaleIncrementU = EditorGUILayout.FloatField( m_ScaleIncrementU, "MiniTextField" );
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label( "V", GUILayout.Width( 16 ) );
+                        if( GUILayout.Button( "-", "minibuttonleft", GUILayout.Width( 20 ) ) )
+                        {
+                        }
+
+                        if( GUILayout.Button( "+", "minibuttonright", GUILayout.Width( 20 ) ) )
+                        {
+                        }
+
+                        GUILayout.Space( 2 );
+                        m_ScaleIncrementV = EditorGUILayout.FloatField( m_ScaleIncrementV, "MiniTextField" );
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space( 2 );
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        if( GUILayout.Button( "Fit To Face", "minibutton" ) )
+                        {
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space( 4 );
                 }
                 GUILayout.EndVertical();
 
@@ -157,10 +210,35 @@ namespace Chisel.Editors
                         m_RotIncrement = EditorGUILayout.FloatField( m_RotIncrement, "MiniTextField" );
                     }
                     GUILayout.EndHorizontal();
-                    
-                    
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        if( GUILayout.Button( "Flip U", "minibuttonleft" ) )
+                        {
+                        }
+
+                        if( GUILayout.Button( "Flip V", "minibuttonright" ) )
+                        {
+                        }
+                    }
+                    GUILayout.EndHorizontal();
 
                     GUILayout.Space( 4 );
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label( "Other", "OL Title" );
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space( 2 );
+                    GUILayout.BeginHorizontal();
+                    {
+                        if( GUILayout.Button( "Open UV Editor", "minibutton" ) )
+                        {
+                        }
+                    }
+                    GUILayout.EndHorizontal();
                 }
                 GUILayout.EndVertical();
             }
