@@ -273,15 +273,8 @@ namespace Chisel.Core
 
                         surfaceIntersection = new ChiselSurfaceIntersection()
                         { 
-                            localPlane              = nativeIntersection.surfaceIntersection.localPlane,
-                            localPlaneIntersection  = nativeIntersection.surfaceIntersection.surfaceIntersection,
-
-                            treePlane               = nativeIntersection.surfaceIntersection.worldPlane,        // bug?
-                            treePlaneIntersection   = nativeIntersection.surfaceIntersection.worldIntersection, // bug?
-
-                            worldPlane              = treeLocalToWorldMatrix.TransformPlane(nativeIntersection.surfaceIntersection.worldPlane),
-                            worldPlaneIntersection  = treeLocalToWorldMatrix.MultiplyPoint (nativeIntersection.surfaceIntersection.worldIntersection),
-
+                            treePlane               = nativeIntersection.surfaceIntersection.worldPlane,        // bug? not in worldSpace, but in treeSpace
+                            treePlaneIntersection   = nativeIntersection.surfaceIntersection.worldIntersection, // bug? not in worldSpace, but in treeSpace
                             distance                = nativeIntersection.surfaceIntersection.distance
                         }
                     };

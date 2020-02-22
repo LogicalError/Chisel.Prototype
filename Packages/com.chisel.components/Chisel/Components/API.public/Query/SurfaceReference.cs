@@ -20,12 +20,12 @@ namespace Chisel.Components
 
         public SurfaceReference(ChiselNode node, ChiselBrushContainerAsset brushContainerAsset, int subNodeIndex, int subMeshIndex, int surfaceIndex, int surfaceID)
         {
-            this.node           = node;
-            this.brushContainerAsset = brushContainerAsset;
-            this.subNodeIndex   = subNodeIndex;
-            this.subMeshIndex   = subMeshIndex;
-            this.surfaceIndex   = surfaceIndex;
-            this.surfaceID      = surfaceID;
+            this.node                   = node;
+            this.brushContainerAsset    = brushContainerAsset;
+            this.subNodeIndex           = subNodeIndex;
+            this.subMeshIndex           = subMeshIndex;
+            this.surfaceIndex           = surfaceIndex;
+            this.surfaceID              = surfaceID;
         }
 
         public void SetDirty()
@@ -140,8 +140,10 @@ namespace Chisel.Components
                     return null;
                 if (surfaceIndex < 0 || surfaceIndex >= brushMesh.surfaces.Length)
                     return null;
+
                 var localPlaneVector = brushMesh.surfaces[surfaceIndex].localPlane;
                 var localPlane       = new Plane((Vector3)localPlaneVector, localPlaneVector.w);
+                localPlane.Translate(-node.PivotOffset);
                 return LocalToWorldSpace.TransformPlane(localPlane);
             }
         }

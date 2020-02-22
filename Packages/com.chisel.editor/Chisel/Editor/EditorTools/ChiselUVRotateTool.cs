@@ -373,26 +373,18 @@ namespace Chisel.Editors
         #endregion
 
         #region Hover Surfaces
-        static CSGTreeBrushIntersection? hoverIntersection;
+        static ChiselIntersection? hoverIntersection;
         static SurfaceReference hoverSurfaceReference;
 
         static readonly HashSet<SurfaceReference> hoverSurfaces = new HashSet<SurfaceReference>();
 
         static void RenderIntersectionPoint(Vector3 position)
         {
-            if (!hoverIntersection.HasValue)
-                return;
-            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
-            var normal              = hoverIntersection.Value.surfaceIntersection.worldPlane.normal;
             SceneHandles.RenderBorderedCircle(position, HandleUtility.GetHandleSize(position) * 0.02f);
         }
 
         static void RenderVertexBox(Vector3 position)
         {
-            if (!hoverIntersection.HasValue)
-                return;
-            var intersectionPoint   = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
-            var normal              = hoverIntersection.Value.surfaceIntersection.worldPlane.normal;
             Handles.RectangleHandleCap(-1, position, Camera.current.transform.rotation, HandleUtility.GetHandleSize(position) * 0.1f, EventType.Repaint);
         }
 
@@ -407,7 +399,7 @@ namespace Chisel.Editors
             if (!hoverIntersection.HasValue)
                 return;
 
-            var position = hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
+            var position = hoverIntersection.Value.worldPlaneIntersection;
             RenderIntersectionPoint(position);
             if (forceVertexSnapping)
                 RenderVertexBox(position);
@@ -436,7 +428,7 @@ namespace Chisel.Editors
                 if (!InEditCameraMode)
                     return modified;
 
-                CSGTreeBrushIntersection intersection;
+                ChiselIntersection intersection;
                 SurfaceReference surfaceReference;
                 var foundSurfaces = ChiselClickSelectionManager.FindSurfaceReference(mousePosition, false, out intersection, out surfaceReference);
                 if (foundSurfaces == null)
@@ -446,9 +438,9 @@ namespace Chisel.Editors
                     return modified;
                 }
 
-                if (!float.IsInfinity(intersection.surfaceIntersection.distance))
+                if (!float.IsInfinity(intersection.brushIntersection.surfaceIntersection.distance))
                 {
-                    intersection.surfaceIntersection.worldPlaneIntersection = SnapIntersection(intersection.surfaceIntersection.worldPlaneIntersection, surfaceReference, out pointHasSnapped);
+                    intersection.worldPlaneIntersection = SnapIntersection(intersection.worldPlaneIntersection, surfaceReference, out pointHasSnapped);
                 }
                 hoverIntersection = intersection;
                 hoverSurfaceReference = surfaceReference;
@@ -801,8 +793,8 @@ namespace Chisel.Editors
             }
             
             // Find the intersection point/plane in model space
-            worldStartPosition		= hoverIntersection.Value.surfaceIntersection.worldPlaneIntersection;
-            worldProjectionPlane	= hoverIntersection.Value.surfaceIntersection.worldPlane;
+            worldStartPosition		= hoverIntersection.Value.worldPlaneIntersection;
+            worldProjectionPlane	= hoverIntersection.Value.worldPlane;
             worldIntersection = worldStartPosition;
 
             // TODO: we want to be able to determine delta movement over a plane. Ideally it would match the position of the cursor perfectly.

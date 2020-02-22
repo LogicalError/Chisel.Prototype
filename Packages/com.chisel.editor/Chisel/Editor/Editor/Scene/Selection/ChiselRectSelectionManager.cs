@@ -523,7 +523,7 @@ namespace Chisel.Editors
         // TODO: make selecting variants work when selecting in hierarchy/rect-select too
         public static void DoSelectionClick(SceneView sceneView, Vector2 mousePosition)
         {
-            CSGTreeBrushIntersection intersection;
+            ChiselIntersection intersection;
             var gameobject = ChiselClickSelectionManager.PickClosestGameObject(Event.current.mousePosition, out intersection);
             
             // If we're a child of an operation that has a "handle as one" flag set, return that instead
@@ -539,7 +539,7 @@ namespace Chisel.Editors
                     if (!gameobject)
                         break;
                     
-                    ChiselSyncSelection.SelectBrushVariant(intersection.brush, uniqueSelection: false);
+                    ChiselSyncSelection.SelectBrushVariant(intersection.brushIntersection.brush, uniqueSelection: false);
                     var instanceID = gameobject.GetInstanceID();
                     selectedObjectsOnClick.Add(instanceID);
                     Selection.instanceIDs = selectedObjectsOnClick.ToArray();
@@ -551,9 +551,9 @@ namespace Chisel.Editors
                         break;
                     
                     Undo.RecordObject(ChiselSyncSelection.Instance, "Deselected brush variant");
-                    ChiselSyncSelection.DeselectBrushVariant(intersection.brush);
+                    ChiselSyncSelection.DeselectBrushVariant(intersection.brushIntersection.brush);
                     // Can only deselect brush if all it's synchronized brushes have also been deselected
-                    if (!ChiselSyncSelection.IsAnyBrushVariantSelected(intersection.brush))
+                    if (!ChiselSyncSelection.IsAnyBrushVariantSelected(intersection.brushIntersection.brush))
                     {
                         var instanceID = gameobject.GetInstanceID();
                         selectedObjectsOnClick.Remove(instanceID);
@@ -564,7 +564,7 @@ namespace Chisel.Editors
                 default:
                 { 
                     Undo.RecordObject(ChiselSyncSelection.Instance, "Selected brush variant");
-                    ChiselSyncSelection.SelectBrushVariant(intersection.brush, uniqueSelection: true);
+                    ChiselSyncSelection.SelectBrushVariant(intersection.brushIntersection.brush, uniqueSelection: true);
                     Selection.activeGameObject = gameobject;
                     break;
                 }
