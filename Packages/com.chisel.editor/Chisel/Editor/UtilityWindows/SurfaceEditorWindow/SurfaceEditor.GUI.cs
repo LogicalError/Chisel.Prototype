@@ -1,3 +1,7 @@
+/*
+ * $TODO: clean up layout code - headers can be put into their own methods, etc.
+ */
+
 using Chisel.Components;
 using Chisel.Core;
 using UnityEditor;
@@ -17,6 +21,7 @@ namespace Chisel.Editors
         private LayerUsageFlags m_LayerUsage      = LayerUsageFlags.All;
 
         // $TODO: find a way to edit surface flags outside of model... its serialized by unity and not visible to SurfaceReference or ChiselBrushMaterial.
+        // ^ this can be done, reference new EditorTools code for this
         //private SurfaceFlags    m_WorldSpaceTex = SurfaceFlags.TextureIsInWorldSpace;
 
         private void DrawTabBar()
@@ -66,9 +71,9 @@ namespace Chisel.Editors
         {
             m_LayerUsage = GetFlagsUI( m_LayerUsage );
 
-            if( CurrentSelection != null )
+            if( CurrentSurfaceSelection != null )
             {
-                foreach( SurfaceReference surfaceReference in CurrentSelection )
+                foreach( SurfaceReference surfaceReference in CurrentSurfaceSelection )
                 {
                     ChiselBrushMaterial bm = surfaceReference.BrushMaterial;
 
@@ -100,10 +105,12 @@ namespace Chisel.Editors
                         GUILayout.Label( "U", GUILayout.Width( 16 ) );
                         if( GUILayout.Button( "<", "minibuttonleft", GUILayout.Width( 20 ) ) )
                         {
+                            TranslateUVSurfaceWorld( new Vector3( m_PanIncrementU, 0, 0 ) );
                         }
 
                         if( GUILayout.Button( ">", "minibuttonright", GUILayout.Width( 20 ) ) )
                         {
+                            TranslateUVSurfaceWorld( new Vector3( -m_PanIncrementU, 0, 0 ) );
                         }
 
                         GUILayout.Space( 2 );
@@ -118,10 +125,12 @@ namespace Chisel.Editors
 
                         if( GUILayout.Button( "<", "minibuttonleft", GUILayout.Width( 20 ) ) )
                         {
+                            TranslateUVSurfaceWorld( new Vector3( 0, 0, m_PanIncrementV ) );
                         }
 
                         if( GUILayout.Button( ">", "minibuttonright", GUILayout.Width( 20 ) ) )
                         {
+                            TranslateUVSurfaceWorld( new Vector3( 0, 0, -m_PanIncrementV ) );
                         }
 
                         GUILayout.Space( 2 );
@@ -144,10 +153,12 @@ namespace Chisel.Editors
                         GUILayout.Label( "U", GUILayout.Width( 16 ) );
                         if( GUILayout.Button( "-", "minibuttonleft", GUILayout.Width( 20 ) ) )
                         {
+                            ScaleUVSurfaceWorld_U( -m_ScaleIncrementU );
                         }
 
                         if( GUILayout.Button( "+", "minibuttonright", GUILayout.Width( 20 ) ) )
                         {
+                            ScaleUVSurfaceWorld_U( m_ScaleIncrementU );
                         }
 
                         GUILayout.Space( 2 );
@@ -160,10 +171,14 @@ namespace Chisel.Editors
                         GUILayout.Label( "V", GUILayout.Width( 16 ) );
                         if( GUILayout.Button( "-", "minibuttonleft", GUILayout.Width( 20 ) ) )
                         {
+                            // this does nothing right now and is just a stub
+                            ScaleUVSurfaceWorld_V( -m_ScaleIncrementV );
                         }
 
                         if( GUILayout.Button( "+", "minibuttonright", GUILayout.Width( 20 ) ) )
                         {
+                            // this does nothing right now and is just a stub
+                            ScaleUVSurfaceWorld_V( m_ScaleIncrementV );
                         }
 
                         GUILayout.Space( 2 );
@@ -177,6 +192,7 @@ namespace Chisel.Editors
                     {
                         if( GUILayout.Button( "Fit To Face", "minibutton" ) )
                         {
+                            // $TODO: implement fit to face functionality
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -201,10 +217,16 @@ namespace Chisel.Editors
                     {
                         if( GUILayout.Button( "<", "minibuttonleft", GUILayout.Width( 32 ) ) )
                         {
+                            // $TODO: can we do this without using UVTool?
+                            RotateUVSurfaceWorld( ChiselUVToolCommon.worldStartPosition,
+                                                  ChiselUVToolCommon.worldDragPlane.normal, m_RotIncrement );
                         }
 
                         if( GUILayout.Button( ">", "minibuttonright", GUILayout.Width( 32 ) ) )
                         {
+                            // $TODO: can we do this without using UVTool?
+                            RotateUVSurfaceWorld( ChiselUVToolCommon.worldStartPosition,
+                                                  ChiselUVToolCommon.worldDragPlane.normal, -m_RotIncrement );
                         }
 
                         m_RotIncrement = EditorGUILayout.FloatField( m_RotIncrement, "MiniTextField" );
@@ -215,6 +237,7 @@ namespace Chisel.Editors
                     {
                         if( GUILayout.Button( "Flip U", "minibuttonleft" ) )
                         {
+                            // $TODO: Implement flip UV functionality
                         }
 
                         if( GUILayout.Button( "Flip V", "minibuttonright" ) )
@@ -236,6 +259,7 @@ namespace Chisel.Editors
                     {
                         if( GUILayout.Button( "Open UV Editor", "minibutton" ) )
                         {
+                            // $TODO: add a UV editor window
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -254,6 +278,7 @@ namespace Chisel.Editors
         }
 
         // Other content not fitting in other tabs - physic material, material, smoothing groups, etc.
+        // $TODO: Implement material/physic material, etc. properties
         private void DrawOtherTabContent()
         {
             GUILayout.Label( "Other" );
@@ -263,7 +288,7 @@ namespace Chisel.Editors
         {
             GUILayout.BeginHorizontal( m_FooterStyle, GUILayout.Height( 20 ) );
 
-            GUILayout.Label( $"Surfaces: {CurrentSelection.Count.ToString()}", m_FooterTextStyle );
+            GUILayout.Label( $"Surfaces: {CurrentSurfaceSelection.Length.ToString()}", m_FooterTextStyle );
 
             GUILayout.FlexibleSpace();
 

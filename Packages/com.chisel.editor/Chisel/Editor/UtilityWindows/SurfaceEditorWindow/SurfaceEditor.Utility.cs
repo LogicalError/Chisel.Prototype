@@ -89,5 +89,43 @@ namespace Chisel.Editors
 
             return flags;
         }
+
+        private void TranslateUVSurfaceWorld( Vector3 translation )
+        {
+            Matrix4x4 movement = Matrix4x4.TRS( translation, Quaternion.identity, Vector3.one );
+            Undo.RecordObjects( CurrentBrushSelection, "Moved UV coordinates" );
+
+            for( int i = 0; i < CurrentSurfaceSelection.Length; i++ )
+            {
+                CurrentSurfaceSelection[i].WorldSpaceTransformUV( in movement, in SelectedUVMatrices[i] );
+            }
+        }
+
+        private void RotateUVSurfaceWorld( Vector3 center, Vector3 normal, float angle )
+        {
+            Matrix4x4 wsRotation = MathExtensions.RotateAroundAxis( center, normal, angle );
+
+            Undo.RecordObjects( CurrentBrushSelection, "Rotate UV coordinates" );
+
+            for( int i = 0; i < CurrentSurfaceSelection.Length; i++ )
+            {
+                Matrix4x4 psRotation = CurrentSurfaceSelection[i].WorldSpaceToPlaneSpace( in wsRotation );
+
+                Quaternion rotateToPlane = Quaternion.FromToRotation( psRotation.GetColumn( 2 ), Vector3.forward );
+                Matrix4x4  fixedRotation = Matrix4x4.TRS( Vector3.zero, rotateToPlane, Vector3.one ) * psRotation;
+
+                CurrentSurfaceSelection[i].PlaneSpaceTransformUV( in fixedRotation, in SelectedUVMatrices[i] );
+            }
+        }
+
+        private void ScaleUVSurfaceWorld_U( float scale )
+        {
+            // $TODO: implement scale UV U
+        }
+
+        private void ScaleUVSurfaceWorld_V( float scale )
+        {
+            // $TODO: implement scale UV V
+        }
     }
 }
